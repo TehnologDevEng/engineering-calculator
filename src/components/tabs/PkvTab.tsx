@@ -82,7 +82,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvQplast}
-                    onChange={(e) => onChange({ pkvQplast: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pkvQplast: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Дебит по замеру АГЗУ</span>
@@ -97,7 +97,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvQpump}
-                    onChange={(e) => onChange({ pkvQpump: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pkvQpump: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Номинал насоса в точке</span>
@@ -120,7 +120,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvHstat}
-                    onChange={(e) => onChange({ pkvHstat: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pkvHstat: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Уровень перед пуском</span>
@@ -134,7 +134,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvHdyn}
-                    onChange={(e) => onChange({ pkvHdyn: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pkvHdyn: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Уровень перед остановкой</span>
@@ -150,7 +150,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvCasingId}
-                    onChange={(e) => onChange({ pkvCasingId: parseFloat(e.target.value) || 130 })}
+                    onChange={val => onChange({ pkvCasingId: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                 </div>
@@ -161,7 +161,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                   </label>
                   <select
                     value={state.pkvTubingD}
-                    onChange={(e) => onChange({ pkvTubingD: parseFloat(e.target.value) || 73 })}
+                    onChange={val => onChange({ pkvTubingD: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   >
                     <option value="60">60 мм (НКТ 60)</option>
@@ -188,7 +188,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvMaxStarts}
-                    onChange={(e) => onChange({ pkvMaxStarts: parseInt(e.target.value, 10) || 12 })}
+                    onChange={val => onChange({ pkvMaxStarts: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Ресурс ПЭД и контактора</span>
@@ -203,7 +203,7 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
                     
                     
                     value={state.pkvMinCoolMin}
-                    onChange={(e) => onChange({ pkvMinCoolMin: parseInt(e.target.value, 10) || 45 })}
+                    onChange={val => onChange({ pkvMinCoolMin: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Для рассеяния тепла</span>

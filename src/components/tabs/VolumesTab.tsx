@@ -146,7 +146,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                           <NumericInput
                             
                             value={item.casingDe}
-                            onChange={e => updateAnnulusInterval(item.id, { casingDe: Number(e.target.value) })}
+                            onChange={val => updateAnnulusInterval(item.id, { casingDe: val })}
                             className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>
@@ -155,7 +155,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                             
                             
                             value={item.casingS}
-                            onChange={e => updateAnnulusInterval(item.id, { casingS: Number(e.target.value) })}
+                            onChange={val => updateAnnulusInterval(item.id, { casingS: val })}
                             className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>
@@ -163,7 +163,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                           <NumericInput
                             
                             value={item.tubingDn}
-                            onChange={e => updateAnnulusInterval(item.id, { tubingDn: Number(e.target.value) })}
+                            onChange={val => updateAnnulusInterval(item.id, { tubingDn: val })}
                             className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>
@@ -171,7 +171,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                           <NumericInput
                             
                             value={item.length}
-                            onChange={e => updateAnnulusInterval(item.id, { length: Number(e.target.value) })}
+                            onChange={val => updateAnnulusInterval(item.id, { length: val })}
                             className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>
@@ -236,7 +236,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                           <NumericInput
                             
                             value={item.tubingDn}
-                            onChange={e => updateTubingInterval(item.id, { tubingDn: Number(e.target.value) })}
+                            onChange={val => updateTubingInterval(item.id, { tubingDn: val })}
                             className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>
@@ -245,7 +245,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                             
                             
                             value={item.tubingS}
-                            onChange={e => updateTubingInterval(item.id, { tubingS: Number(e.target.value) })}
+                            onChange={val => updateTubingInterval(item.id, { tubingS: val })}
                             className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>
@@ -253,7 +253,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                           <NumericInput
                             
                             value={item.length}
-                            onChange={e => updateTubingInterval(item.id, { length: Number(e.target.value) })}
+                            onChange={val => updateTubingInterval(item.id, { length: val })}
                             className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
                           />
                         </td>

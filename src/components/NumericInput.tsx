@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 interface NumericInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
-  value: number;
+  value: number | string | undefined;
   onChange: (value: number) => void;
   allowFloat?: boolean;
 }
@@ -13,7 +13,7 @@ export const NumericInput: React.FC<NumericInputProps> = ({
   className,
   ...props 
 }) => {
-  const [localValue, setLocalValue] = useState(value.toString());
+  const [localValue, setLocalValue] = useState(value?.toString() ?? '');
 
   // Sync with external state changes
   useEffect(() => {
@@ -21,7 +21,7 @@ export const NumericInput: React.FC<NumericInputProps> = ({
     if (isNaN(parsedLocal) || parsedLocal !== value) {
       // Only update if the external value is meaningfully different 
       // from what we're typing, to avoid wiping out trailing decimals
-      setLocalValue(value.toString());
+      setLocalValue(value?.toString() ?? '');
     }
   }, [value]);
 

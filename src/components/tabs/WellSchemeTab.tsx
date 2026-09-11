@@ -136,7 +136,7 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({ state, calc, updat
                   max={state.depthPlast}
                   step={10}
                   value={state.pumpDepth}
-                  onChange={e => updateState({ pumpDepth: Number(e.target.value), nktLength: Number(e.target.value) })}
+                  onChange={val => updateState({ pumpDepth: val, nktLength: val })}
                   className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 mt-1"
                 />
               </div>
@@ -151,7 +151,7 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({ state, calc, updat
                   max={state.pumpDepth - 50}
                   step={10}
                   value={state.dynLevel}
-                  onChange={e => updateState({ dynLevel: Number(e.target.value) })}
+                  onChange={val => updateState({ dynLevel: val })}
                   className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-400 mt-1"
                 />
               </div>

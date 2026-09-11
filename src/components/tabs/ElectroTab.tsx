@@ -45,7 +45,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                   
                   
                   value={state.pedPower}
-                  onChange={(e) => onChange({ pedPower: parseFloat(e.target.value) || 0 })}
+                  onChange={val => onChange({ pedPower: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 />
               </div>
@@ -58,7 +58,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                   
                   
                   value={state.pedCurrent}
-                  onChange={(e) => onChange({ pedCurrent: parseFloat(e.target.value) || 0 })}
+                  onChange={val => onChange({ pedCurrent: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 />
               </div>
@@ -73,7 +73,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                   
                   
                   value={state.pedVoltage}
-                  onChange={(e) => onChange({ pedVoltage: parseFloat(e.target.value) || 0 })}
+                  onChange={val => onChange({ pedVoltage: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 />
               </div>
@@ -88,7 +88,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                   
                   
                   value={state.pedCosPhi}
-                  onChange={(e) => onChange({ pedCosPhi: parseFloat(e.target.value) || 0.8 })}
+                  onChange={val => onChange({ pedCosPhi: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 />
               </div>
@@ -123,7 +123,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                 </label>
                 <select
                   value={state.cableCross}
-                  onChange={(e) => onChange({ cableCross: parseInt(e.target.value, 10) || 16 })}
+                  onChange={val => onChange({ cableCross: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 >
                   <option value="10">10 мм² (R₂₀ = 1.83 Ом/км)</option>
@@ -141,7 +141,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                   
                   
                   value={state.cableLength}
-                  onChange={(e) => onChange({ cableLength: parseFloat(e.target.value) || 0 })}
+                  onChange={val => onChange({ cableLength: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 />
               </div>
@@ -155,7 +155,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                 
                 
                 value={state.wellTemp}
-                onChange={(e) => onChange({ wellTemp: parseFloat(e.target.value) || 20 })}
+                onChange={val => onChange({ wellTemp: val })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
               />
             </div>
@@ -174,7 +174,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                 </label>
                 <select
                   value={state.tmpnKva}
-                  onChange={(e) => onChange({ tmpnKva: parseInt(e.target.value, 10) || 250 })}
+                  onChange={val => onChange({ tmpnKva: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 >
                   <option value="100">ТМПН-100 кВА</option>
@@ -194,7 +194,7 @@ export const ElectroTab: React.FC<ElectroTabProps> = ({ state, electro, onChange
                   
                   
                   value={state.gridVoltage}
-                  onChange={(e) => onChange({ gridVoltage: parseFloat(e.target.value) || 380 })}
+                  onChange={val => onChange({ gridVoltage: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-yellow-500 focus:outline-none"
                 />
               </div>

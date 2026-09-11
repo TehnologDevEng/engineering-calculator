@@ -64,7 +64,7 @@ export const ChokeTab: React.FC<ChokeTabProps> = ({ state, calc, updateState }) 
                   
                   
                   value={state.chokeQ || ''}
-                  onChange={e => updateState({ chokeQ: Number(e.target.value) })}
+                  onChange={val => updateState({ chokeQ: val })}
                   className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none"
                   placeholder="80"
                 />
@@ -83,7 +83,7 @@ export const ChokeTab: React.FC<ChokeTabProps> = ({ state, calc, updateState }) 
                   
                   
                   value={state.chokeDp || ''}
-                  onChange={e => updateState({ chokeDp: Number(e.target.value) })}
+                  onChange={val => updateState({ chokeDp: val })}
                   className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none"
                   placeholder="15"
                 />
@@ -103,7 +103,7 @@ export const ChokeTab: React.FC<ChokeTabProps> = ({ state, calc, updateState }) 
                   
                   
                   value={state.chokeRho || ''}
-                  onChange={e => updateState({ chokeRho: Number(e.target.value) })}
+                  onChange={val => updateState({ chokeRho: val })}
                   className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none"
                   placeholder="950"
                 />
@@ -123,7 +123,7 @@ export const ChokeTab: React.FC<ChokeTabProps> = ({ state, calc, updateState }) 
                   
                   
                   value={state.chokeC || ''}
-                  onChange={e => updateState({ chokeC: Number(e.target.value) })}
+                  onChange={val => updateState({ chokeC: val })}
                   className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none"
                   placeholder="0.68"
                 />

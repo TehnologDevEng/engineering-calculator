@@ -98,7 +98,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                       <NumericInput
                         
                         value={state.nktTopLen}
-                        onChange={(e) => onChange({ nktTopLen: parseFloat(e.target.value) || 0 })}
+                        onChange={val => onChange({ nktTopLen: val })}
                         className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono"
                       />
                     </div>
@@ -106,7 +106,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                       <label className="block text-[10px] text-slate-400 mb-1">Размер</label>
                       <select
                         value={state.nktTopSize}
-                        onChange={(e) => onChange({ nktTopSize: parseInt(e.target.value, 10) || 73 })}
+                        onChange={val => onChange({ nktTopSize: val })}
                         className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white font-mono"
                       >
                         <option value="73">73 мм</option>
@@ -140,7 +140,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                   </label>
                   <select
                     value={state.nktSize}
-                    onChange={(e) => onChange({ nktSize: parseInt(e.target.value, 10) || 73 })}
+                    onChange={val => onChange({ nktSize: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                   >
                     <option value="60">НКТ 60 (Внутр. 50.3 мм)</option>
@@ -176,7 +176,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                     
                     
                     value={state.nktLength}
-                    onChange={(e) => onChange({ nktLength: parseFloat(e.target.value) || 0, pumpDepth: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ nktLength: val, pumpDepth: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                   />
                 </div>
@@ -213,7 +213,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                     
                     
                     value={state.nktFlowQ}
-                    onChange={(e) => onChange({ nktFlowQ: parseFloat(e.target.value) || 0, flowRate: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ nktFlowQ: val, flowRate: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                   />
                 </div>
@@ -226,7 +226,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                     
                     
                     value={state.nktViscosity}
-                    onChange={(e) => onChange({ nktViscosity: parseFloat(e.target.value) || 1 })}
+                    onChange={val => onChange({ nktViscosity: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                   />
                 </div>
@@ -241,7 +241,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                     
                     
                     value={state.nktDensity}
-                    onChange={(e) => onChange({ nktDensity: parseFloat(e.target.value) || 1000 })}
+                    onChange={val => onChange({ nktDensity: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                   />
                 </div>
@@ -254,7 +254,7 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                     
                     
                     value={state.nktEspWeight}
-                    onChange={(e) => onChange({ nktEspWeight: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ nktEspWeight: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-purple-500 focus:outline-none"
                   />
                 </div>

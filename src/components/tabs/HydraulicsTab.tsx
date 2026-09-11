@@ -86,7 +86,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.pPlast}
-                    onChange={(e) => onChange({ pPlast: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pPlast: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Пластовое давление</span>
@@ -100,7 +100,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.pSat}
-                    onChange={(e) => onChange({ pSat: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pSat: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-slate-500">Давление насыщения нефти</span>
@@ -116,7 +116,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.gasFactor}
-                    onChange={(e) => onChange({ gasFactor: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ gasFactor: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -129,7 +129,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.depthPlast}
-                    onChange={(e) => onChange({ depthPlast: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ depthPlast: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -151,7 +151,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.flowRate}
-                    onChange={(e) => onChange({ flowRate: parseFloat(e.target.value) || 0, nktFlowQ: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ flowRate: val, nktFlowQ: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -164,7 +164,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.dynLevel}
-                    onChange={(e) => onChange({ dynLevel: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ dynLevel: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -179,7 +179,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.pumpDepth}
-                    onChange={(e) => onChange({ pumpDepth: parseFloat(e.target.value) || 0, nktLength: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pumpDepth: val, nktLength: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -194,7 +194,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.waterCut}
-                    onChange={(e) => onChange({ waterCut: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ waterCut: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -209,7 +209,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.pZatr}
-                    onChange={(e) => onChange({ pZatr: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pZatr: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -222,7 +222,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                     
                     
                     value={state.pBuf}
-                    onChange={(e) => onChange({ pBuf: parseFloat(e.target.value) || 0 })}
+                    onChange={val => onChange({ pBuf: val })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                   />
                 </div>
@@ -244,7 +244,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                   
                   
                   value={state.measuredPtube}
-                  onChange={(e) => onChange({ measuredPtube: parseFloat(e.target.value) || 0 })}
+                  onChange={val => onChange({ measuredPtube: val })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -285,7 +285,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                 max="65"
                 step="1"
                 value={state.frequency}
-                onChange={(e) => onChange({ frequency: parseInt(e.target.value, 10) || 50 })}
+                onChange={val => onChange({ frequency: val })}
                 className="w-full accent-blue-500 cursor-pointer"
               />
               <div className="flex justify-between text-[10px] text-slate-500 font-mono">
@@ -343,7 +343,7 @@ export const HydraulicsTab: React.FC<HydraulicsTabProps> = ({ state, hydraulics,
                   
                   
                   value={state.customKpr}
-                  onChange={(e) => onChange({ customKpr: parseFloat(e.target.value) || 0.1 })}
+                  onChange={val => onChange({ customKpr: val })}
                   className="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-white outline-none"
                 />
                 <span className="text-xs text-blue-400 font-mono font-bold">

@@ -43,7 +43,7 @@ export const CoolingKillTab: React.FC<CoolingKillTabProps> = ({ state, coolingKi
                 
                 
                 value={state.casingId}
-                onChange={(e) => onChange({ casingId: parseFloat(e.target.value) || 130 })}
+                onChange={val => onChange({ casingId: val })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-cyan-500 focus:outline-none"
               />
             </div>
@@ -54,7 +54,7 @@ export const CoolingKillTab: React.FC<CoolingKillTabProps> = ({ state, coolingKi
               </label>
               <select
                 value={state.pedDiameter}
-                onChange={(e) => onChange({ pedDiameter: parseInt(e.target.value, 10) || 117 })}
+                onChange={val => onChange({ pedDiameter: val })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-cyan-500 focus:outline-none"
               >
                 <option value="103">103 мм (Габарит 5)</option>
@@ -146,7 +146,7 @@ export const CoolingKillTab: React.FC<CoolingKillTabProps> = ({ state, coolingKi
               </label>
               <select
                 value={state.killSafetyMargin}
-                onChange={(e) => onChange({ killSafetyMargin: parseFloat(e.target.value) || 1.10 })}
+                onChange={val => onChange({ killSafetyMargin: val })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
               >
                 <option value="1.05">1.05 (Запас 5% — глубина до 1200 м)</option>
@@ -162,7 +162,7 @@ export const CoolingKillTab: React.FC<CoolingKillTabProps> = ({ state, coolingKi
               </label>
               <select
                 value={state.tubingSize}
-                onChange={(e) => onChange({ tubingSize: parseInt(e.target.value, 10) || 73 })}
+                onChange={val => onChange({ tubingSize: val })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
               >
                 <option value="60">60 мм (НКТ 60)</option>
