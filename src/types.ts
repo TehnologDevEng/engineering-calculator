@@ -41,6 +41,9 @@ export interface WellState {
   pkvTubingD: number;    // mm (60, 73, 89)
   pkvMaxStarts: number;  // starts per day max
   pkvMinCoolMin: number; // min cooling pause in minutes
+  pkvInputMode: 'echo' | 'tms';
+  pkvPtmsStart: number;  // atm (Pressure at intake before start)
+  pkvPtmsStop: number;   // atm (Pressure at intake before stop)
   pkvCustomTon?: number; // min
   pkvCustomToff?: number; // min
 
@@ -126,6 +129,11 @@ export interface PkvResults {
   warningMessage?: string;
   recommendedTonMin?: number;
   recommendedToffMin?: number;
+  calcHstat?: number;
+  calcHdyn?: number;
+  coolingRecDeltaH?: number;
+  coolingRecHdyn?: number;
+  coolingRecPtms?: number;
 }
 
 export interface NktResults {

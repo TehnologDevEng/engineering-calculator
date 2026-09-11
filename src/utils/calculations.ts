@@ -22,7 +22,21 @@ import {
 } from '../data/constants';
 
 export function calculatePkv(state: WellState): PkvResults {
-  const deltaH = Math.max(10, state.pkvHdyn - state.pkvHstat);
+  let hStat = state.pkvHstat;
+  let hDyn = state.pkvHdyn;
+  let rhoMix = 1000;
+
+  if (state.pkvInputMode === 'tms') {
+    const waterFrac = state.waterCut / 100;
+    rhoMix = state.oilDensity * (1 - waterFrac) + state.waterDensity * waterFrac;
+    
+    // P_tms is pressure at intake. 
+    // H = Lpump - (Ptms * 101325) / (rhoMix * 9.81)
+    hStat = Math.max(0, state.pumpDepth - (state.pkvPtmsStart * 101325) / (rhoMix * 9.81));
+    hDyn = Math.max(0, state.pumpDepth - (state.pkvPtmsStop * 101325) / (rhoMix * 9.81));
+  }
+
+  const deltaH = Math.max(10, hDyn - hStat);
 
   // Annular cross section: S = pi/4 * (D_casing^2 - d_tubing_outer^2)
   const sAnnulusM2 = (Math.PI / 4) * (Math.pow(state.pkvCasingId / 1000, 2) - Math.pow(state.pkvTubingD / 1000, 2));
@@ -56,14 +70,30 @@ export function calculatePkv(state: WellState): PkvResults {
   const recommendedTonMin = Math.round(qRatio * targetTcycleMin);
   const recommendedToffMin = Math.round(targetTcycleMin - recommendedTonMin);
 
-  const isOptimal = startsPerDay <= state.pkvMaxStarts && (tAccumHours * 60) >= state.pkvMinCoolMin;
-
+  let isOptimal = true;
   let warningMessage: string | undefined;
-  if (!isOptimal) {
-    if (startsPerDay > state.pkvMaxStarts) {
-      warningMessage = `Число пусков (${startsPerDay.toFixed(1)}/сут) превышает лимит СУ (${state.pkvMaxStarts}/сут). Увеличьте интервал уровней ΔH или снизьте подачу насоса.`;
+  
+  let coolingRecDeltaH: number | undefined;
+  let coolingRecHdyn: number | undefined;
+  let coolingRecPtms: number | undefined;
+
+  if (startsPerDay > state.pkvMaxStarts) {
+    isOptimal = false;
+    warningMessage = `Число пусков (${startsPerDay.toFixed(1)}/сут) превышает лимит СУ (${state.pkvMaxStarts}/сут). Увеличьте интервал уровней ΔH или снизьте подачу насоса.`;
+  } else if (state.pkvMinCoolMin > 0 && tAccumMin < state.pkvMinCoolMin) {
+    isOptimal = false;
+    
+    // Auto-recommendation calculations
+    const requiredTaccumHours = state.pkvMinCoolMin / 60;
+    const requiredVcycle = requiredTaccumHours * qPlHour;
+    coolingRecDeltaH = requiredVcycle / Math.max(0.001, sAnnulusM2);
+    coolingRecHdyn = hStat + coolingRecDeltaH;
+    
+    if (state.pkvInputMode === 'tms') {
+      coolingRecPtms = (state.pumpDepth - coolingRecHdyn) * rhoMix * 9.81 / 101325;
+      warningMessage = `Внимание! Расчетное время паузы (${tAccumMin} мин) меньше минимального времени остывания ПЭД (${state.pkvMinCoolMin} мин). Для обеспечения безопасного остывания увеличьте перепад давлений (снизьте уставку отключения до ${Math.max(0, coolingRecPtms).toFixed(1)} атм).`;
     } else {
-      warningMessage = `Время паузы (${tAccumMin} мин) меньше минимального времени остывания ПЭД (${state.pkvMinCoolMin} мин).`;
+      warningMessage = `Внимание! Расчетное время паузы (${tAccumMin} мин) меньше минимального времени остывания ПЭД (${state.pkvMinCoolMin} мин). Для обеспечения безопасного остывания увеличьте ΔH до ${Math.round(coolingRecDeltaH)} м (установите Hдин.отк = ${Math.round(coolingRecHdyn)} м).`;
     }
   }
 
@@ -84,6 +114,11 @@ export function calculatePkv(state: WellState): PkvResults {
     warningMessage,
     recommendedTonMin,
     recommendedToffMin,
+    calcHstat: hStat,
+    calcHdyn: hDyn,
+    coolingRecDeltaH,
+    coolingRecHdyn,
+    coolingRecPtms,
   };
 }
 

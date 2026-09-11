@@ -306,6 +306,9 @@ export const DEFAULT_WELL_STATE: WellState = {
   pkvTubingD: 73,
   pkvMaxStarts: 12,
   pkvMinCoolMin: 45,
+  pkvInputMode: 'echo',
+  pkvPtmsStart: 50,
+  pkvPtmsStop: 25,
   pkvCustomTon: undefined,
   pkvCustomToff: undefined,
 
