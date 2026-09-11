@@ -9,7 +9,9 @@ interface PkvCycleChartProps {
 
 export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
   const { tPumpHours, tAccumHours, tCycleHours, deltaH, actualDailyQ } = pkv;
-  const { pkvHstat, pkvHdyn } = state;
+  // Use calculated values from pkv if available (for TMS mode), otherwise fallback to state
+  const pkvHstat = pkv.calcHstat ?? state.pkvHstat;
+  const pkvHdyn = pkv.calcHdyn ?? state.pkvHdyn;
 
   // Chart coordinate space: 24 hours on X axis (0 to 24)
   // Y axis: Depth in meters (from pkvHstat - 100 to pkvHdyn + 100)
@@ -129,13 +131,13 @@ export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
           ))}
 
           {/* Grid lines horizontal (Depths) */}
-          {[pkvHstat, Math.round((pkvHstat + pkvHdyn) / 2), pkvHdyn].map(d => {
+          {[pkvHstat, (pkvHstat + pkvHdyn) / 2, pkvHdyn].map((d, i) => {
             const y = getY(d);
             return (
-              <g key={d}>
+              <g key={i}>
                 <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#334155" strokeDasharray="3 3" strokeWidth="1" />
                 <text x={padL - 8} y={y + 4} textAnchor="end" fill="#94a3b8" fontSize="10" fontFamily="monospace">
-                  {d} м
+                  {Math.round(d)} м
                 </text>
               </g>
             );
@@ -165,7 +167,7 @@ export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
             strokeDasharray="4 2"
           />
           <text x={svgW - padR} y={getY(pkvHstat) - 6} textAnchor="end" fill="#f59e0b" fontSize="9" fontWeight="bold">
-            Hстат = {pkvHstat}м
+            Hстат = {Math.round(pkvHstat)}м
           </text>
 
           {/* Dynamic level reference line */}
@@ -179,7 +181,7 @@ export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
             strokeDasharray="4 2"
           />
           <text x={svgW - padR} y={getY(pkvHdyn) + 14} textAnchor="end" fill="#38bdf8" fontSize="9" fontWeight="bold">
-            Hдин = {pkvHdyn}м
+            Hдин = {Math.round(pkvHdyn)}м
           </text>
 
           {/* Sawtooth Path */}
