@@ -1,7 +1,17 @@
-import { NumericInput } from "../NumericInput";
 import React from 'react';
+import { NumericInput } from '../NumericInput';
+import { FieldHint } from '../FieldHint';
 import { WellState, PkvResults } from '../../types';
-import { Clock, CheckCircle2, AlertTriangle, Lightbulb, HelpCircle, Download } from 'lucide-react';
+import {
+  Clock,
+  CheckCircle2,
+  AlertTriangle,
+  Lightbulb,
+  HelpCircle,
+  Download,
+  Wrench,
+  Link2,
+} from 'lucide-react';
 import { PkvCycleChart } from '../charts/PkvCycleChart';
 
 interface PkvTabProps {
@@ -24,81 +34,110 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
     });
   };
 
+  const syncFromPassport = () => {
+    onChange({
+      pkvCasingId: state.casingId,
+      pkvTubingD: state.nktSize,
+      pkvQplast: state.flowRate,
+    });
+  };
+
+  const applyRecommendedPkv = () => {
+    if (state.pkvInputMode === 'tms' && pkv.coolingRecPtms !== undefined) {
+      onChange({ pkvPtmsStop: Math.max(1, Number(pkv.coolingRecPtms.toFixed(1))) });
+    } else if (pkv.coolingRecHdyn !== undefined) {
+      onChange({ pkvHdyn: Math.round(pkv.coolingRecHdyn) });
+    } else if (pkv.startsPerDay > state.pkvMaxStarts) {
+      // Increase deltaH so startsPerDay <= pkvMaxStarts
+      const qPlHour = Math.max(0.01, state.pkvQplast / 24);
+      const qPumpHour = Math.max(0.01, state.pkvQpump / 24);
+      const netPumpHour = Math.max(0.05, qPumpHour - qPlHour);
+      const targetCycleHours = 24 / Math.max(1, state.pkvMaxStarts);
+      const reqVcycle = targetCycleHours / (1 / qPlHour + 1 / netPumpHour);
+      const reqDeltaH = reqVcycle / Math.max(0.001, pkv.sAnnulusM2);
+      const baseStat = pkv.calcHstat ?? state.pkvHstat;
+      onChange({ pkvHdyn: Math.round(baseStat + reqDeltaH) });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1">
             Модуль 01 · Периодический фонд
           </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             Расчёт параметров режима ПКВ (Периодической кратковременной эксплуатации)
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Определение времени накопления и откачки для скважин с притоком ниже минимальной устойчивой подачи УЭЦН
           </p>
         </div>
-        <button
-          onClick={loadExample}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-        >
-          <Download className="w-3.5 h-3.5 text-amber-400" />
-          📥 Пример
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={syncFromPassport}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition"
+          >
+            <Link2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            Взять из схемы
+          </button>
+          <button
+            type="button"
+            onClick={loadExample}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            Пример
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* Left Column: Form Inputs */}
         <div className="lg:col-span-5 space-y-5">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
-            
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-amber-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+                <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                   Исходные параметры ПКВ
                 </h3>
               </div>
-              <span className="text-[11px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
-                Режим ПКВ
-              </span>
+              <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Режим ПКВ</span>
             </div>
 
             {/* Section 1: Rates */}
             <div className="space-y-3">
-              <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+              <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
                 1. Характеристики притока и подачи насоса
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Приток пласта Qпл <span className="text-blue-400 font-mono">м³/сут</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Приток Qпл <span className="text-blue-600 dark:text-blue-400 font-mono">м³/сут</span>
+                    <FieldHint hintKey="pkvQplast" />
                   </label>
                   <NumericInput
-                    
-                    
-                    
                     value={state.pkvQplast}
-                    onChange={val => onChange({ pkvQplast: val })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                    onChange={(val) => onChange({ pkvQplast: val })}
+                    className="focus:border-amber-500"
                   />
                   <span className="text-[10px] text-slate-500">Дебит по замеру АГЗУ</span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Подача насоса Qнас <span className="text-blue-400 font-mono">м³/сут</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Подача Qнас <span className="text-blue-600 dark:text-blue-400 font-mono">м³/сут</span>
+                    <FieldHint hintKey="pkvQpump" />
                   </label>
                   <NumericInput
-                    
-                    
-                    
                     value={state.pkvQpump}
-                    onChange={val => onChange({ pkvQpump: val })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                    onChange={(val) => onChange({ pkvQpump: val })}
+                    className="focus:border-amber-500"
                   />
                   <span className="text-[10px] text-slate-500">Номинал насоса в точке</span>
                 </div>
@@ -106,28 +145,30 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
             </div>
 
             {/* Section 2: Levels and Geometry */}
-            <div className="space-y-3 pt-4 border-t border-slate-800/80">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
-                  2. Уровни и геометрия затрубного пространства
+            <div className="space-y-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 mt-4">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                  2. Уровни и геометрия затруба
                 </div>
-                <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
                   <button
+                    type="button"
                     onClick={() => onChange({ pkvInputMode: 'echo' })}
                     className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition ${
-                      state.pkvInputMode === 'echo' 
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                        : 'text-slate-500 hover:text-slate-300 border border-transparent'
+                      state.pkvInputMode === 'echo'
+                        ? 'bg-white dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
                     }`}
                   >
                     Эхолот
                   </button>
                   <button
+                    type="button"
                     onClick={() => onChange({ pkvInputMode: 'tms' })}
                     className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition ${
-                      state.pkvInputMode === 'tms' 
-                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                        : 'text-slate-500 hover:text-slate-300 border border-transparent'
+                      state.pkvInputMode === 'tms'
+                        ? 'bg-white dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
                     }`}
                   >
                     Датчик ТМС
@@ -138,25 +179,27 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
               {state.pkvInputMode === 'echo' ? (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Hстат (верхний) <span className="text-blue-400 font-mono">м</span>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Hстат (верхний) <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
+                      <FieldHint hintKey="pkvHstat" />
                     </label>
                     <NumericInput
                       value={state.pkvHstat}
-                      onChange={val => onChange({ pkvHstat: val })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                      onChange={(val) => onChange({ pkvHstat: val })}
+                      className="focus:border-amber-500"
                     />
                     <span className="text-[10px] text-slate-500">Уровень перед пуском</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Hдин.отк (нижний) <span className="text-blue-400 font-mono">м</span>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Hдин.отк (нижний) <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
+                      <FieldHint hintKey="dynLevel" />
                     </label>
                     <NumericInput
                       value={state.pkvHdyn}
-                      onChange={val => onChange({ pkvHdyn: val })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                      onChange={(val) => onChange({ pkvHdyn: val })}
+                      className="focus:border-amber-500"
                     />
                     <span className="text-[10px] text-slate-500">Уровень перед остановкой</span>
                   </div>
@@ -164,53 +207,57 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Pтмс (перед пуском) <span className="text-blue-400 font-mono">атм</span>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Pтмс (пуск) <span className="text-blue-600 dark:text-blue-400 font-mono">атм</span>
+                      <FieldHint hintKey="measuredPtube" />
                     </label>
                     <NumericInput
                       value={state.pkvPtmsStart}
-                      onChange={val => onChange({ pkvPtmsStart: val })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                      onChange={(val) => onChange({ pkvPtmsStart: val })}
+                      className="focus:border-amber-500"
                     />
-                    <span className="text-[10px] text-slate-500">Уставка включения (Hстат: ~{Math.round(pkv.calcHstat || 0)} м)</span>
+                    <span className="text-[10px] text-slate-500">
+                      Уставка вкл. (Hстат: ~{Math.round(pkv.calcHstat || 0)} м)
+                    </span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">
-                      Pтмс (перед откл.) <span className="text-blue-400 font-mono">атм</span>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Pтмс (откл.) <span className="text-blue-600 dark:text-blue-400 font-mono">атм</span>
                     </label>
                     <NumericInput
                       value={state.pkvPtmsStop}
-                      onChange={val => onChange({ pkvPtmsStop: val })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                      onChange={(val) => onChange({ pkvPtmsStop: val })}
+                      className="focus:border-amber-500"
                     />
-                    <span className="text-[10px] text-slate-500">Уставка отключения (Hдин: ~{Math.round(pkv.calcHdyn || 0)} м)</span>
+                    <span className="text-[10px] text-slate-500">
+                      Уставка откл. (Hдин: ~{Math.round(pkv.calcHdyn || 0)} м)
+                    </span>
                   </div>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Внутр. диам. ЭК Dвн <span className="text-blue-400 font-mono">мм</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Внутр. D ЭК <span className="text-blue-600 dark:text-blue-400 font-mono">мм</span>
+                    <FieldHint hintKey="casingId" />
                   </label>
                   <NumericInput
-                    
-                    
                     value={state.pkvCasingId}
-                    onChange={val => onChange({ pkvCasingId: val })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                    onChange={(val) => onChange({ pkvCasingId: val })}
+                    className="focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Диаметр колонны НКТ
                   </label>
                   <select
                     value={state.pkvTubingD}
-                    onChange={e => onChange({ pkvTubingD: Number(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                    onChange={(e) => onChange({ pkvTubingD: Number(e.target.value) })}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white font-mono focus:border-amber-500 focus:outline-none"
                   >
                     <option value="60">60 мм (НКТ 60)</option>
                     <option value="73">73 мм (НКТ 73)</option>
@@ -221,252 +268,306 @@ export const PkvTab: React.FC<PkvTabProps> = ({ state, pkv, onChange }) => {
             </div>
 
             {/* Section 3: Limits */}
-            <div className="space-y-3 pt-4 border-t border-slate-800/80">
-              <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
-                3. Технологические ограничения программы СУ
+            <div className="space-y-3 pt-4 border-t border-slate-200/80 dark:border-slate-800/80 mt-4">
+              <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                3. Ограничения программы СУ
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Макс. пусков в сутки
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Макс. пусков / сут
+                    <FieldHint hintKey="pkvMaxStarts" />
                   </label>
                   <NumericInput
-                    
-                    
-                    
                     value={state.pkvMaxStarts}
-                    onChange={val => onChange({ pkvMaxStarts: val })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                    onChange={(val) => onChange({ pkvMaxStarts: val })}
+                    className="focus:border-amber-500"
                   />
                   <span className="text-[10px] text-slate-500">Ресурс ПЭД и контактора</span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Мин. пауза остывания <span className="text-blue-400 font-mono">мин</span>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Пауза остыв. <span className="text-blue-600 dark:text-blue-400 font-mono">мин</span>
+                    <FieldHint hintKey="pkvMinCoolMin" />
                   </label>
                   <NumericInput
-                    
-                    
-                    
                     value={state.pkvMinCoolMin}
-                    onChange={val => onChange({ pkvMinCoolMin: val })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-amber-500 focus:outline-none"
+                    onChange={(val) => onChange({ pkvMinCoolMin: val })}
+                    className="focus:border-amber-500"
                   />
                   <span className="text-[10px] text-slate-500">Для рассеяния тепла</span>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
         {/* Right Column: Calculated Results & Settings Table */}
         <div className="lg:col-span-7 space-y-5">
-          
           {/* Results Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-2">
-                <span>Параметры цикла откачки и накопления</span>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4 gap-2 flex-wrap">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                Параметры цикла откачки и накопления
               </h3>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border flex items-center gap-1.5 ${
-                pkv.isOptimal
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                  : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-              }`}>
+              <span
+                className={`text-xs font-semibold flex items-center gap-1.5 ${
+                  pkv.isOptimal
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-rose-600 dark:text-rose-400'
+                }`}
+              >
                 {pkv.isOptimal ? (
                   <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <CheckCircle2 className="w-4 h-4" />
                     <span>Режим ПКВ оптимален</span>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <AlertTriangle className="w-4 h-4" />
                     <span>Требует корректировки</span>
                   </>
                 )}
               </span>
             </div>
 
-            <div className="divide-y divide-slate-800/80 text-xs">
+            <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80 text-xs">
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Столб накопления жидкости ΔH:</span>
-                <span className="font-mono font-bold text-amber-400 text-sm">{pkv.deltaH.toFixed(0)} м</span>
+                <span className="text-slate-500 dark:text-slate-400">Столб накопления жидкости ΔH:</span>
+                <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm">
+                  {pkv.deltaH.toFixed(0)} м
+                </span>
               </div>
 
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Удельная емкость затруба:</span>
-                <span className="font-mono font-semibold text-slate-200">
+                <span className="text-slate-500 dark:text-slate-400">Удельная емкость затруба:</span>
+                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
                   {pkv.sAnnulusLM.toFixed(2)} л/м ({pkv.sAnnulusM2.toFixed(4)} м³/м)
                 </span>
               </div>
 
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Объём жидкости за 1 цикл Vцикл:</span>
-                <span className="font-mono font-bold text-blue-400 text-sm">{pkv.vCycle.toFixed(2)} м³</span>
+                <span className="text-slate-500 dark:text-slate-400">Объём жидкости за 1 цикл Vцикл:</span>
+                <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">
+                  {pkv.vCycle.toFixed(2)} м³
+                </span>
               </div>
 
-              <div className="py-2.5 flex justify-between items-center bg-slate-950/40 px-2 rounded-lg">
-                <span className="text-slate-300 font-medium">Время паузы накопления Tнак (ПЭД откл.):</span>
-                <span className={`font-mono font-bold text-sm ${pkv.tAccumMin >= state.pkvMinCoolMin || state.pkvMinCoolMin === 0 ? 'text-amber-400' : 'text-rose-500'}`}>
+              <div className="py-2.5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/40 px-2.5 rounded-lg">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  Время паузы накопления Tнак (ПЭД откл.):
+                </span>
+                <span
+                  className={`font-mono font-bold text-sm ${
+                    pkv.tAccumMin >= state.pkvMinCoolMin || state.pkvMinCoolMin === 0
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-rose-600 dark:text-rose-500'
+                  }`}
+                >
                   {pkv.tAccumHours.toFixed(2)} ч ({pkv.tAccumMin} мин)
                 </span>
               </div>
-              
+
               <div className="py-2.5 flex justify-between items-center px-2">
-                <span className="text-slate-400">Требуемое время на остывание (уставка):</span>
-                <span className="font-mono font-semibold text-slate-200">
+                <span className="text-slate-500 dark:text-slate-400">Требуемое время на остывание (уставка):</span>
+                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
                   {state.pkvMinCoolMin > 0 ? `${state.pkvMinCoolMin} мин` : 'Отключено (0 мин)'}
                 </span>
               </div>
 
-              <div className="py-2.5 flex justify-between items-center bg-slate-950/40 px-2 rounded-lg mt-1">
-                <span className="text-slate-300 font-medium">Время откачки Tотк (ПЭД включен):</span>
-                <span className="font-mono font-bold text-emerald-400 text-sm">
+              <div className="py-2.5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/40 px-2.5 rounded-lg mt-1">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  Время откачки Tотк (ПЭД включён):
+                </span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                   {pkv.tPumpHours.toFixed(2)} ч ({pkv.tPumpMin} мин)
                 </span>
               </div>
 
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Полный период одного цикла Tобщ:</span>
-                <span className="font-mono font-semibold text-slate-200">{pkv.tCycleHours.toFixed(2)} ч</span>
+                <span className="text-slate-500 dark:text-slate-400">Полный период одного цикла Tобщ:</span>
+                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                  {pkv.tCycleHours.toFixed(2)} ч
+                </span>
               </div>
 
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Коэффициент цикличности Кц:</span>
-                <span className="font-mono font-semibold text-slate-200">
+                <span className="text-slate-500 dark:text-slate-400">Коэффициент цикличности Кц:</span>
+                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
                   {pkv.kCycle.toFixed(3)} ({(pkv.kCycle * 100).toFixed(1)}%)
                 </span>
               </div>
 
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Количество пусков насоса в сутки:</span>
-                <span className={`font-mono font-bold text-sm ${
-                  pkv.startsPerDay <= state.pkvMaxStarts ? 'text-emerald-400' : 'text-rose-400'
-                }`}>
+                <span className="text-slate-500 dark:text-slate-400">Количество пусков насоса в сутки:</span>
+                <span
+                  className={`font-mono font-bold text-sm ${
+                    pkv.startsPerDay <= state.pkvMaxStarts
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-rose-600 dark:text-rose-400'
+                  }`}
+                >
                   {pkv.startsPerDay.toFixed(1)} пусков/сут
                 </span>
               </div>
 
               <div className="py-2.5 flex justify-between items-center">
-                <span className="text-slate-400">Ожидаемая суточная добыча Qсут:</span>
-                <span className="font-mono font-bold text-white text-sm">{pkv.actualDailyQ.toFixed(1)} м³/сут</span>
+                <span className="text-slate-500 dark:text-slate-400">Ожидаемая суточная добыча Qсут:</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+                  {pkv.actualDailyQ.toFixed(1)} м³/сут
+                </span>
               </div>
             </div>
 
-            {/* Feedback Callout */}
-            <div className={`mt-4 p-3.5 rounded-xl border text-xs leading-relaxed ${
-              pkv.isOptimal
-                ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-200'
-                : 'bg-rose-950/20 border-rose-800/40 text-rose-200'
-            }`}>
+            {/* Feedback Callout + 1-Click Fix */}
+            <div
+              className={`mt-4 p-3.5 rounded-xl border text-xs leading-relaxed space-y-2.5 ${
+                pkv.isOptimal
+                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200'
+                  : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/40 text-rose-900 dark:text-rose-200'
+              }`}
+            >
               {pkv.isOptimal ? (
                 <p>
-                  <strong>Расчет сбалансирован:</strong> Насос производительностью {state.pkvQpump} м³/сут откачивает накопленный объем {pkv.vCycle.toFixed(2)} м³ за {pkv.tPumpHours.toFixed(2)} ч. {state.pkvMinCoolMin > 0 ? `Пауза ${pkv.tAccumHours.toFixed(2)} ч достаточна для тепловой стабилизации ПЭД.` : `Контроль остывания отключен.`} Количество включений ({pkv.startsPerDay.toFixed(1)}/сут) в пределах установленной нормы.
+                  <strong>Расчёт сбалансирован:</strong> Насос производительностью {state.pkvQpump} м³/сут откачивает
+                  накопленный объём {pkv.vCycle.toFixed(2)} м³ за {pkv.tPumpHours.toFixed(2)} ч.{' '}
+                  {state.pkvMinCoolMin > 0
+                    ? `Пауза ${pkv.tAccumHours.toFixed(2)} ч достаточна для тепловой стабилизации ПЭД.`
+                    : `Контроль остывания отключён.`}{' '}
+                  Количество включений ({pkv.startsPerDay.toFixed(1)}/сут) в пределах нормы.
                 </p>
               ) : (
-                <p>
-                  <strong>Внимание:</strong> {pkv.warningMessage}
-                </p>
+                <>
+                  <p>
+                    <strong>Внимание:</strong> {pkv.warningMessage}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={applyRecommendedPkv}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition shadow-xs"
+                  >
+                    <Wrench className="w-3.5 h-3.5" />
+                    Применить рекомендованные уставки
+                  </button>
+                </>
               )}
             </div>
           </div>
 
           {/* SU Settings Table */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                 Технологические уставки для Станции Управления (СУ)
               </h3>
-              <span className="text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-mono">
-                Таймеры СУ
-              </span>
+              <span className="text-xs font-mono font-semibold text-blue-600 dark:text-blue-400">Таймеры СУ</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">
                     <th className="py-2 pr-3">Параметр уставки</th>
                     <th className="py-2 px-3">Ед. изм.</th>
                     <th className="py-2 px-3">Значение</th>
                     <th className="py-2 pl-3">Назначение</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/70 font-mono">
+                <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800/70 font-mono">
                   <tr>
-                    <td className="py-2.5 pr-3 font-sans font-semibold text-white">Таймер работы насоса (Tотк)</td>
-                    <td className="py-2.5 px-3 text-slate-400">мин / ч</td>
-                    <td className="py-2.5 px-3 font-bold text-emerald-400">{pkv.tPumpMin} мин ({pkv.tPumpHours.toFixed(2)} ч)</td>
-                    <td className="py-2.5 pl-3 font-sans text-slate-400">Откачка столба ΔH</td>
+                    <td className="py-2.5 pr-3 font-sans font-semibold text-slate-900 dark:text-white">
+                      Таймер работы насоса (Tотк)
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400">мин / ч</td>
+                    <td className="py-2.5 px-3 font-bold text-emerald-600 dark:text-emerald-400">
+                      {pkv.tPumpMin} мин ({pkv.tPumpHours.toFixed(2)} ч)
+                    </td>
+                    <td className="py-2.5 pl-3 font-sans text-slate-500 dark:text-slate-400">Откачка столба ΔH</td>
                   </tr>
                   <tr>
-                    <td className="py-2.5 pr-3 font-sans font-semibold text-white">Таймер паузы накопления (Tпауз)</td>
-                    <td className="py-2.5 px-3 text-slate-400">мин / ч</td>
-                    <td className="py-2.5 px-3 font-bold text-amber-400">{pkv.tAccumMin} мин ({pkv.tAccumHours.toFixed(2)} ч)</td>
-                    <td className="py-2.5 pl-3 font-sans text-slate-400">Приток пласта + остывание</td>
+                    <td className="py-2.5 pr-3 font-sans font-semibold text-slate-900 dark:text-white">
+                      Таймер паузы накопления (Tпауз)
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400">мин / ч</td>
+                    <td className="py-2.5 px-3 font-bold text-amber-600 dark:text-amber-400">
+                      {pkv.tAccumMin} мин ({pkv.tAccumHours.toFixed(2)} ч)
+                    </td>
+                    <td className="py-2.5 pl-3 font-sans text-slate-500 dark:text-slate-400">
+                      Приток пласта + остывание
+                    </td>
                   </tr>
                   <tr>
-                    <td className="py-2.5 pr-3 font-sans font-semibold text-white">Период одного цикла</td>
-                    <td className="py-2.5 px-3 text-slate-400">час</td>
-                    <td className="py-2.5 px-3 font-bold text-blue-400">{pkv.tCycleHours.toFixed(2)} ч</td>
-                    <td className="py-2.5 pl-3 font-sans text-slate-400">Tотк + Tпауз</td>
+                    <td className="py-2.5 pr-3 font-sans font-semibold text-slate-900 dark:text-white">
+                      Период одного цикла
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400">час</td>
+                    <td className="py-2.5 px-3 font-bold text-blue-600 dark:text-blue-400">
+                      {pkv.tCycleHours.toFixed(2)} ч
+                    </td>
+                    <td className="py-2.5 pl-3 font-sans text-slate-500 dark:text-slate-400">Tотк + Tпауз</td>
                   </tr>
                   <tr>
-                    <td className="py-2.5 pr-3 font-sans font-semibold text-white">Число циклов в сутки</td>
-                    <td className="py-2.5 px-3 text-slate-400">цикл/сут</td>
-                    <td className="py-2.5 px-3 font-bold text-slate-200">{pkv.startsPerDay.toFixed(1)}</td>
-                    <td className="py-2.5 pl-3 font-sans text-slate-400">Лимит: до {state.pkvMaxStarts}</td>
+                    <td className="py-2.5 pr-3 font-sans font-semibold text-slate-900 dark:text-white">
+                      Число циклов в сутки
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400">цикл/сут</td>
+                    <td className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">
+                      {pkv.startsPerDay.toFixed(1)}
+                    </td>
+                    <td className="py-2.5 pl-3 font-sans text-slate-500 dark:text-slate-400">
+                      Лимит: до {state.pkvMaxStarts}
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             {pkv.recommendedTonMin && (
-              <div className="mt-3 p-2.5 bg-slate-950/60 border border-slate-800 rounded-lg text-xs flex items-center justify-between text-slate-300">
+              <div className="mt-3 p-2.5 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg text-xs flex items-center justify-between gap-2 text-slate-700 dark:text-slate-300">
                 <span>Рекомендация для ровно {state.pkvMaxStarts} пусков/сут:</span>
-                <span className="font-mono font-bold text-amber-300">
+                <span className="font-mono font-bold text-amber-600 dark:text-amber-300">
                   Tотк = {pkv.recommendedTonMin} мин, Tпаузы = {pkv.recommendedToffMin} мин
                 </span>
               </div>
             )}
 
-            <div className="mt-4 p-3 bg-blue-950/20 border border-blue-900/40 rounded-xl flex items-start gap-2.5 text-xs text-blue-200">
-              <Lightbulb className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl flex items-start gap-2.5 text-xs text-blue-900 dark:text-blue-200">
+              <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
               <p>
-                <strong>Инженерный совет:</strong> Если СУ оборудована частотным преобразователем (ЧРП), снижение частоты до 40–42 Гц позволяет уменьшить подачу насоса, увеличить время непрерывной откачки и улучшить охлаждение ПЭД при сниженных пусковых токах.
+                <strong>Инженерный совет:</strong> Если СУ оборудована частотным преобразователем (ЧРП), снижение
+                частоты до 40–42 Гц позволяет уменьшить подачу насоса, увеличить время непрерывной откачки и улучшить
+                охлаждение ПЭД при сниженных пусковых токах.
               </p>
             </div>
-
           </div>
-
         </div>
 
         {/* Embedded 24-hour cycle chart */}
         <div className="col-span-1 lg:col-span-12">
           <PkvCycleChart state={state} pkv={pkv} />
         </div>
-
       </div>
 
       {/* Guide Details */}
-      <details className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 leading-relaxed">
-        <summary className="font-semibold text-amber-400 cursor-pointer select-none flex items-center gap-1.5 hover:text-amber-300">
+      <details className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        <summary className="font-semibold text-amber-600 dark:text-amber-400 cursor-pointer select-none flex items-center gap-1.5 hover:text-amber-500">
           <HelpCircle className="w-4 h-4" />
-          📘 Методика и физический смысл расчёта режима ПКВ
+          Методика и физический смысл расчёта режима ПКВ
         </summary>
-        <div className="mt-3 pt-3 border-t border-slate-800 space-y-2">
+        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
           <p>
-            Режим периодической кратковременной эксплуатации (ПКВ) применяется на малодебитных скважинах, где пластовый приток Qпл существенно меньше минимальной подачи насоса Qнас из рабочей зоны. При непрерывной откачке насос быстро срывает подачу по Z-потоку или газу, перегревается и отключается защитой ЗСП/ЗПП.
+            Режим периодической кратковременной эксплуатации (ПКВ) применяется на малодебитных скважинах, где
+            пластовый приток Qпл существенно меньше минимальной подачи насоса Qнас. При непрерывной откачке насос
+            быстро срывает подачу и отключается защитой ЗСП/ЗПП.
           </p>
           <p>
-            В режиме ПКВ скважина накапливает столб флюида ΔH = Hдин.отк - Hстат при остановленном насосе за время накопления Tнак = Vцикл / Qпл, после чего насос включается и откачивает накопившийся объем за время откачки Tотк = Vцикл / (Qнас - Qпл).
+            В режиме ПКВ скважина накапливает столб флюида ΔH = Hдин.отк − Hстат при остановленном насосе за время
+            Tнак = Vцикл / Qпл, после чего насос откачивает накопившийся объём за время Tотк = Vцикл / (Qнас − Qпл).
           </p>
         </div>
       </details>
     </div>
   );
 };
-

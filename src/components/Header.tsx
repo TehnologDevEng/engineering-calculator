@@ -1,17 +1,22 @@
 import React from 'react';
 import { WellState } from '../types';
 import { WELL_PRESETS } from '../data/constants';
-import { 
-  RotateCcw, 
-  Save, 
-  Printer, 
+import {
+  RotateCcw,
+  Save,
+  Printer,
   SlidersHorizontal,
-  FileSpreadsheet
+  Sun,
+  Moon,
+  FolderOpen,
 } from 'lucide-react';
 
 interface HeaderProps {
   state: WellState;
-  onUpdateState: (updates: Partial<WellState>) => void;
+  theme: 'light' | 'dark';
+  savedCount: number;
+  onToggleTheme: () => void;
+  onOpenWellsModal: () => void;
   onReset: () => void;
   onSave: () => void;
   onPrint: () => void;
@@ -20,57 +25,57 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   state,
-  onUpdateState,
+  theme,
+  savedCount,
+  onToggleTheme,
+  onOpenWellsModal,
   onReset,
   onSave,
   onPrint,
   onApplyPreset,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-md print:hidden transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-          
-          {/* Logo & Title */}
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xs px-2.5 py-1.5 rounded-lg shadow-sm tracking-wider uppercase flex items-center gap-1.5">
-              <span>УЭЦН</span>
-              <span className="bg-blue-400/30 text-[10px] px-1 rounded">PRO v4.2</span>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+          {/* Brand & Active Well */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="bg-blue-600 text-white font-extrabold text-xs px-2.5 py-1.5 rounded-lg tracking-wider uppercase shrink-0">
+              УЭЦН PRO
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-bold text-white tracking-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight whitespace-nowrap">
                   Инженерный калькулятор технолога
                 </h1>
-                <span className="hidden sm:inline-block text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700 font-mono">
-                  Скв. {state.wellName} ({state.clusterName})
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
+                  · Скв. {state.wellName} ({state.clusterName})
                 </span>
               </div>
-              <p className="text-xs text-slate-400 hidden sm:block">
-                Комплекс расчётов: ПВ/ПКВ · НКТ · Приток & Газ · СУ & ТМПН · Охлаждение & Глушение
+              <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate">
+                Схема · ПКВ · НКТ · Приток и газ · СУ и ТМПН · Охлаждение и глушение · Штуцер
               </p>
             </div>
           </div>
 
-          {/* Presets & Actions */}
-          <div className="flex items-center flex-wrap gap-2 w-full md:w-auto justify-between md:justify-end">
-            
+          {/* Controls */}
+          <div className="flex items-center flex-wrap gap-2 w-full lg:w-auto justify-between lg:justify-end">
             {/* Presets Dropdown */}
-            <div className="relative flex items-center">
-              <span className="text-xs text-slate-400 mr-2 flex items-center gap-1">
-                <SlidersHorizontal className="w-3.5 h-3.5 text-blue-400" />
-                Пресет:
-              </span>
+            <div className="flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
               <select
-                className="bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-medium outline-none focus:border-blue-500 transition cursor-pointer"
+                aria-label="Выбрать готовый тип скважины"
+                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-medium outline-none focus:border-blue-500 transition cursor-pointer max-w-[210px]"
                 onChange={(e) => {
-                  const preset = WELL_PRESETS.find(p => p.id === e.target.value);
+                  const preset = WELL_PRESETS.find((p) => p.id === e.target.value);
                   if (preset) onApplyPreset(preset.state);
                 }}
                 defaultValue=""
               >
-                <option value="" disabled>-- Выбрать тип скважины --</option>
-                {WELL_PRESETS.map(p => (
+                <option value="" disabled>
+                  Типовой сценарий...
+                </option>
+                {WELL_PRESETS.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
                   </option>
@@ -78,41 +83,64 @@ export const Header: React.FC<HeaderProps> = ({
               </select>
             </div>
 
-            {/* Quick action buttons */}
-            <div className="flex items-center gap-1.5">
+            {/* Action buttons */}
+            <div className="flex items-center gap-1.5 flex-wrap">
               <button
                 type="button"
-                onClick={onReset}
-                title="Сброс к эталонным значениям"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition"
+                onClick={onOpenWellsModal}
+                title="Сохранённые скважины и обмен JSON"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap shrink-0"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
-                <span className="hidden sm:inline">Сброс</span>
+                <FolderOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                <span className="hidden sm:inline">База ({savedCount})</span>
               </button>
 
               <button
                 type="button"
                 onClick={onSave}
-                title="Сохранить параметры в браузере"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition"
+                title="Сохранить текущую скважину в базе браузера"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap shrink-0"
               >
-                <Save className="w-3.5 h-3.5 text-emerald-400" />
+                <Save className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span className="hidden sm:inline">Сохранить</span>
               </button>
 
               <button
                 type="button"
+                onClick={onReset}
+                title="Сброс к эталонным значениям"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap shrink-0"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <span className="hidden md:inline">Сброс</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                title={theme === 'dark' ? 'Включить светлую тему (для дневного света)' : 'Включить тёмную тему'}
+                aria-label={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap shrink-0"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                ) : (
+                  <Moon className="w-3.5 h-3.5 text-slate-700" />
+                )}
+                <span className="hidden xl:inline">{theme === 'dark' ? 'День' : 'Ночь'}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={onPrint}
-                title="Распечатать или сохранить протокол в PDF"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 shadow-sm transition"
+                title="Открыть протокол и распечатать в PDF"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 shadow-sm transition whitespace-nowrap shrink-0"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Отчёт / PDF</span>
               </button>
             </div>
-
           </div>
-
         </div>
       </div>
     </header>

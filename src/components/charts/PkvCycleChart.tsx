@@ -84,11 +84,11 @@ export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
   }, '');
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-amber-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+          <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
             График изменения динамического уровня во времени H(t) за сутки
           </h3>
         </div>
@@ -105,7 +105,7 @@ export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto bg-slate-950 rounded-xl p-3 border border-slate-800">
         <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full min-w-[650px] h-auto select-none">
           <defs>
             <linearGradient id="pumpAreaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -218,22 +218,22 @@ export const PkvCycleChart: React.FC<PkvCycleChartProps> = ({ state, pkv }) => {
       </div>
 
       {/* Cycle summary bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
         <div>
-          <span className="text-slate-400 block">Период одного цикла:</span>
-          <span className="font-mono font-bold text-white text-sm">{tCycleHours.toFixed(2)} ч</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Период одного цикла:</span>
+          <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">{tCycleHours.toFixed(2)} ч</span>
         </div>
         <div>
-          <span className="text-slate-400 block">Количество пусков:</span>
-          <span className="font-mono font-bold text-amber-400 text-sm">{pkv.startsPerDay.toFixed(1)} / сут</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Количество пусков:</span>
+          <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm">{pkv.startsPerDay.toFixed(1)} / сут</span>
         </div>
         <div>
-          <span className="text-slate-400 block">Перепад уровня ΔH:</span>
-          <span className="font-mono font-bold text-blue-400 text-sm">{deltaH.toFixed(0)} м</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Перепад уровня ΔH:</span>
+          <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">{deltaH.toFixed(0)} м</span>
         </div>
         <div>
-          <span className="text-slate-400 block">Добыча за сутки:</span>
-          <span className="font-mono font-bold text-emerald-400 text-sm">{actualDailyQ.toFixed(1)} м³/сут</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Добыча за сутки:</span>
+          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">{actualDailyQ.toFixed(1)} м³/сут</span>
         </div>
       </div>
     </div>

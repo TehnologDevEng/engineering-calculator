@@ -1,6 +1,6 @@
 import React from 'react';
 import { WellState, FullCalculations } from '../../types';
-import { Printer, Download, FileText, CheckCircle2 } from 'lucide-react';
+import { Printer, Download, FileText } from 'lucide-react';
 
 interface ReportTabProps {
   state: WellState;
@@ -40,7 +40,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({ state, calc, onChange }) =
   ];
 
   const exportCSV = () => {
-    let csv = 'Категория;Параметр;Ед. изм.;Значение;Норматив / Примечание\n';
+    let csv = '\uFEFFКатегория;Параметр;Ед. изм.;Значение;Норматив / Примечание\n';
     reportItems.forEach(r => {
       csv += `"${r.cat}";"${r.param}";"${r.unit}";"${r.val}";"${r.norm}"\n`;
     });
@@ -52,25 +52,26 @@ export const ReportTab: React.FC<ReportTabProps> = ({ state, calc, onChange }) =
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-6 print:bg-white print:border-none print:text-black print:p-0">
-      
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6 print:bg-white print:border-none print:text-black print:p-0 transition-colors">
+
       {/* Header of Report */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5 print:border-slate-300">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5 print:border-slate-300">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <FileText className="w-5 h-5 text-blue-400 print:text-black" />
-            <h2 className="text-base sm:text-lg font-bold text-white uppercase tracking-wide print:text-black">
+            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400 print:text-black" />
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white uppercase tracking-wide print:text-black">
               Сводный технологический паспорт-протокол УЭЦН
             </h2>
           </div>
-          <p className="text-xs text-slate-400 print:text-slate-600">
+          <p className="text-xs text-slate-500 dark:text-slate-400 print:text-slate-600">
             Официальный инженерный расчёт режимов и оборудования погружной насосной установки
           </p>
-          <div className="text-[11px] text-blue-400 print:text-slate-700 mt-1">
-            Разработка и алгоритмы: <span className="font-bold text-white print:text-black">Носар Андрей</span> (nosar.andrey@gmail.com)
+          <div className="text-[11px] text-blue-600 dark:text-blue-400 print:text-slate-700 mt-1">
+            Разработка и алгоритмы: <span className="font-bold text-slate-900 dark:text-white print:text-black">Носар Андрей</span> (nosar.andrey@gmail.com)
           </div>
         </div>
 
@@ -78,16 +79,16 @@ export const ReportTab: React.FC<ReportTabProps> = ({ state, calc, onChange }) =
           <button
             type="button"
             onClick={exportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap"
           >
-            <Download className="w-3.5 h-3.5 text-blue-400" />
+            <Download className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>Экспорт CSV</span>
           </button>
 
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition shadow-sm whitespace-nowrap"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Печать</span>
@@ -96,37 +97,37 @@ export const ReportTab: React.FC<ReportTabProps> = ({ state, calc, onChange }) =
       </div>
 
       {/* Passport Meta Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 text-xs print:bg-slate-100 print:border-slate-300 print:text-black">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 text-xs print:bg-slate-100 print:border-slate-300 print:text-black">
         <div>
-          <label className="text-slate-400 block mb-1 print:text-slate-600">Кустовая площадка:</label>
+          <label className="text-slate-500 dark:text-slate-400 block mb-1 print:text-slate-600">Кустовая площадка:</label>
           <input
             type="text"
             value={state.clusterName}
             onChange={(e) => onChange({ clusterName: e.target.value })}
-            className="bg-transparent font-bold text-white border-b border-dashed border-slate-700 focus:border-blue-500 focus:outline-none w-full print:text-black print:border-none"
+            className="bg-transparent font-bold text-slate-900 dark:text-white border-b border-dashed border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none w-full print:text-black print:border-none"
           />
         </div>
 
         <div>
-          <label className="text-slate-400 block mb-1 print:text-slate-600">Номер скважины:</label>
+          <label className="text-slate-500 dark:text-slate-400 block mb-1 print:text-slate-600">Номер скважины:</label>
           <input
             type="text"
             value={state.wellName}
             onChange={(e) => onChange({ wellName: e.target.value })}
-            className="bg-transparent font-bold text-white border-b border-dashed border-slate-700 focus:border-blue-500 focus:outline-none w-full print:text-black print:border-none"
+            className="bg-transparent font-bold text-slate-900 dark:text-white border-b border-dashed border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none w-full print:text-black print:border-none"
           />
         </div>
 
         <div>
-          <label className="text-slate-400 block mb-1 print:text-slate-600">Инженер-технолог / Дата:</label>
-          <div className="flex items-center justify-between">
+          <label className="text-slate-500 dark:text-slate-400 block mb-1 print:text-slate-600">Инженер-технолог / Дата:</label>
+          <div className="flex items-center justify-between gap-2">
             <input
               type="text"
               value={state.engineerName}
               onChange={(e) => onChange({ engineerName: e.target.value })}
-              className="bg-transparent font-bold text-white border-b border-dashed border-slate-700 focus:border-blue-500 focus:outline-none print:text-black print:border-none"
+              className="bg-transparent font-bold text-slate-900 dark:text-white border-b border-dashed border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none min-w-0 flex-1 print:text-black print:border-none"
             />
-            <span className="font-mono text-slate-400 print:text-slate-600">{currentDate}</span>
+            <span className="font-mono text-slate-500 dark:text-slate-400 print:text-slate-600 shrink-0">{currentDate}</span>
           </div>
         </div>
       </div>
@@ -135,7 +136,7 @@ export const ReportTab: React.FC<ReportTabProps> = ({ state, calc, onChange }) =
       <div className="overflow-x-auto">
         <table className="w-full text-xs text-left">
           <thead>
-            <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] print:border-slate-400 print:text-slate-700">
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] print:border-slate-400 print:text-slate-700">
               <th className="py-2.5 pr-3">Узел / Модуль</th>
               <th className="py-2.5 px-3">Технологический параметр</th>
               <th className="py-2.5 px-3">Ед. изм.</th>
@@ -143,14 +144,14 @@ export const ReportTab: React.FC<ReportTabProps> = ({ state, calc, onChange }) =
               <th className="py-2.5 pl-3">Норматив / Примечание</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/70 font-mono print:divide-slate-300 print:text-black">
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70 font-mono print:divide-slate-300 print:text-black">
             {reportItems.map((r, idx) => (
-              <tr key={idx} className="hover:bg-slate-800/20">
-                <td className="py-2.5 pr-3 font-sans font-bold text-slate-300 print:text-black">{r.cat}</td>
-                <td className="py-2.5 px-3 font-sans text-slate-200 print:text-black">{r.param}</td>
-                <td className="py-2.5 px-3 text-slate-400 print:text-slate-600">{r.unit}</td>
-                <td className="py-2.5 px-3 font-bold text-blue-400 print:text-black">{r.val}</td>
-                <td className="py-2.5 pl-3 font-sans text-slate-400 print:text-slate-700">{r.norm}</td>
+              <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                <td className="py-2.5 pr-3 font-sans font-bold text-slate-700 dark:text-slate-300 print:text-black">{r.cat}</td>
+                <td className="py-2.5 px-3 font-sans text-slate-800 dark:text-slate-200 print:text-black">{r.param}</td>
+                <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400 print:text-slate-600">{r.unit}</td>
+                <td className="py-2.5 px-3 font-bold text-blue-600 dark:text-blue-400 print:text-black">{r.val}</td>
+                <td className="py-2.5 pl-3 font-sans text-slate-500 dark:text-slate-400 print:text-slate-700">{r.norm}</td>
               </tr>
             ))}
           </tbody>

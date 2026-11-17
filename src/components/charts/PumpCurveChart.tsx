@@ -73,22 +73,22 @@ export const PumpCurveChart: React.FC<PumpCurveChartProps> = ({
   const optRectX2 = getX(optQmax);
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
         <div className="flex items-center gap-2">
-          <Activity className="w-5 h-5 text-blue-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wide">
+          <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
             Напорно-расходная характеристика насоса Q-H и регулирование ЧРП
           </h3>
         </div>
 
         {/* Live Frequency Controller on chart header */}
-        <div className="flex items-center gap-3 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
-          <Sliders className="w-3.5 h-3.5 text-blue-400" />
-          <span className="text-xs text-slate-300 font-medium">
+        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <Sliders className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
             {isVed ? 'Частота ВЭД:' : 'Частота АД:'}
           </span>
-          <span className="font-mono font-bold text-blue-400 text-xs w-14">{currentFreq} Гц</span>
+          <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs w-14">{currentFreq} Гц</span>
           <input
             type="range"
             min="35"
@@ -104,7 +104,7 @@ export const PumpCurveChart: React.FC<PumpCurveChartProps> = ({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto bg-slate-950 rounded-xl p-3 border border-slate-800">
         <svg viewBox={`0 0 ${svgW} ${svgH}`} className="w-full min-w-[650px] h-auto select-none">
           <defs>
             <linearGradient id="optZoneGrad" x1="0" y1="0" x2="0" y2="1">
@@ -229,22 +229,22 @@ export const PumpCurveChart: React.FC<PumpCurveChartProps> = ({
       </div>
 
       {/* Point metrics info */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
         <div>
-          <span className="text-slate-400 block">Подача насоса Q(f):</span>
-          <span className="font-mono font-bold text-blue-400 text-sm">{scaledQ.toFixed(1)} м³/сут</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Подача насоса Q(f):</span>
+          <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">{scaledQ.toFixed(1)} м³/сут</span>
         </div>
         <div>
-          <span className="text-slate-400 block">Развиваемый напор H(f):</span>
-          <span className="font-mono font-bold text-purple-400 text-sm">{scaledH} м</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Развиваемый напор H(f):</span>
+          <span className="font-mono font-bold text-purple-600 dark:text-purple-400 text-sm">{scaledH} м</span>
         </div>
         <div>
-          <span className="text-slate-400 block">Мощность на валу N(f):</span>
-          <span className="font-mono font-bold text-emerald-400 text-sm">{hydraulics.scaledPower} кВт</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Мощность на валу N(f):</span>
+          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">{hydraulics.scaledPower} кВт</span>
         </div>
         <div>
-          <span className="text-slate-400 block">Регулирование ЧРП:</span>
-          <span className="font-mono font-bold text-yellow-400 text-sm">{currentFreq} Гц ({(currentFreq / 50).toFixed(2)})</span>
+          <span className="text-slate-500 dark:text-slate-400 block">Регулирование ЧРП:</span>
+          <span className="font-mono font-bold text-amber-600 dark:text-yellow-400 text-sm">{currentFreq} Гц ({(currentFreq / 50).toFixed(2)})</span>
         </div>
       </div>
     </div>

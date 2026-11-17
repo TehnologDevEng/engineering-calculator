@@ -1,7 +1,8 @@
-import { NumericInput } from "../NumericInput";
 import React from 'react';
+import { NumericInput } from '../NumericInput';
 import { WellState, FullCalculations, AnnulusInterval, TubingInterval } from '../../types';
-import { Layers, HelpCircle, Plus, Trash2, Download, CheckCircle, Scale } from 'lucide-react';
+import { NKT_CATALOGUE } from '../../data/constants';
+import { Layers, HelpCircle, Plus, Trash2, Download, Scale, Link2 } from 'lucide-react';
 
 interface VolumesTabProps {
   state: WellState;
@@ -22,6 +23,41 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
         { id: '1', tubingDn: 73, tubingS: 5.5, length: 2050 },
       ],
     });
+  };
+
+  const fillFromPassport = () => {
+    const casingS = state.casingId >= 145 ? 8 : 7.5;
+    const casingDe = Number((state.casingId + 2 * casingS).toFixed(1));
+    const getWall = (size: number) =>
+      NKT_CATALOGUE.find((n) => n.size === size)?.wall ?? 5.5;
+
+    const totalLen = Math.max(100, state.pumpDepth || state.nktLength);
+
+    const topLen = state.nktTopLen ?? 0;
+    const topSize = state.nktTopSize ?? state.nktSize;
+
+    if (state.nktIsStepped && topLen > 0 && topLen < totalLen) {
+      const botLen = totalLen - topLen;
+      updateState({
+        annulusIntervals: [
+          { id: '1', casingDe, casingS, tubingDn: topSize, length: topLen },
+          { id: '2', casingDe, casingS, tubingDn: state.nktSize, length: botLen },
+        ],
+        tubingIntervals: [
+          { id: '1', tubingDn: topSize, tubingS: getWall(topSize), length: topLen },
+          { id: '2', tubingDn: state.nktSize, tubingS: getWall(state.nktSize), length: botLen },
+        ],
+      });
+    } else {
+      updateState({
+        annulusIntervals: [
+          { id: '1', casingDe, casingS, tubingDn: state.nktSize, length: totalLen },
+        ],
+        tubingIntervals: [
+          { id: '1', tubingDn: state.nktSize, tubingS: getWall(state.nktSize), length: totalLen },
+        ],
+      });
+    }
   };
 
   const addAnnulusInterval = () => {
@@ -78,40 +114,52 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
   return (
     <div className="space-y-6">
       {/* Module Title Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-blue-400 mb-1">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
             Модуль 07 · Геометрия и объёмы
           </div>
-          <h2 className="text-xl font-bold text-white tracking-tight">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             Ступенчатый расчёт объёмов скважины и дебита нефти
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Поинтервальный расчёт внутреннего объёма труб НКТ и затрубного пространства для планирования глушения и промывок
           </p>
         </div>
-        <button
-          onClick={loadExample}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-        >
-          <Download className="w-3.5 h-3.5 text-blue-400" />
-          📥 Пример
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={fillFromPassport}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap"
+          >
+            <Link2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            Заполнить по схеме скважины
+          </button>
+          <button
+            type="button"
+            onClick={loadExample}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            Пример
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Interval configuration tables */}
         <div className="lg:col-span-2 space-y-6">
           {/* 1. Annulus Intervals */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
-                <Layers className="w-4 h-4 text-amber-400" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 gap-2">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                <Layers className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 Интервалы затрубного пространства (ЭК — НКТ)
               </h3>
               <button
+                type="button"
                 onClick={addAnnulusInterval}
-                className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-semibold"
+                className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-semibold whitespace-nowrap"
               >
                 <Plus className="w-3.5 h-3.5" /> Добавить интервал
               </button>
@@ -119,7 +167,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="text-[11px] text-slate-400 uppercase bg-slate-800/60 border-b border-slate-700">
+                <thead className="text-[11px] text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="py-2 px-3">#</th>
                     <th className="py-2 px-3">Dнар ЭК (мм)</th>
@@ -130,59 +178,62 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                     <th className="py-2 px-3"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {state.annulusIntervals.map((item, idx) => {
                     const dCasingInner = item.casingDe - 2 * item.casingS;
+                    const isInvalidGeo = dCasingInner <= item.tubingDn;
                     const vol =
-                      dCasingInner > item.tubingDn
+                      !isInvalidGeo
                         ? (Math.PI / 4) *
                           (Math.pow(dCasingInner / 1000, 2) - Math.pow(item.tubingDn / 1000, 2)) *
                           item.length
                         : 0;
                     return (
-                      <tr key={item.id} className="hover:bg-slate-800/30">
-                        <td className="py-2 px-3 font-mono text-slate-400">{idx + 1}</td>
+                      <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="py-2 px-3 font-mono text-slate-500 dark:text-slate-400">{idx + 1}</td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
                             value={item.casingDe}
                             onChange={val => updateAnnulusInterval(item.id, { casingDe: val })}
-                            className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
-                            
                             value={item.casingS}
                             onChange={val => updateAnnulusInterval(item.id, { casingS: val })}
-                            className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-16 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
                             value={item.tubingDn}
                             onChange={val => updateAnnulusInterval(item.id, { tubingDn: val })}
-                            className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-16 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
                             value={item.length}
                             onChange={val => updateAnnulusInterval(item.id, { length: val })}
-                            className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
-                        <td className="py-2 px-3 text-right font-mono font-bold text-amber-400">
-                          {vol.toFixed(2)}
+                        <td
+                          className={`py-2 px-3 text-right font-mono font-bold ${
+                            isInvalidGeo ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'
+                          }`}
+                          title={isInvalidGeo ? 'Внутренний диаметр ЭК меньше или равен Dнар НКТ' : undefined}
+                        >
+                          {isInvalidGeo ? 'Ошибка Ø' : vol.toFixed(2)}
                         </td>
                         <td className="py-2 px-3 text-right">
                           <button
+                            type="button"
                             onClick={() => removeAnnulusInterval(item.id)}
                             disabled={state.annulusIntervals.length <= 1}
-                            className="text-slate-500 hover:text-rose-400 disabled:opacity-30 transition"
+                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-30 transition"
+                            aria-label="Удалить интервал"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -196,15 +247,16 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
           </div>
 
           {/* 2. Tubing Intervals */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
-                <Layers className="w-4 h-4 text-purple-400" />
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2 gap-2">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 Интервалы внутренней полости НКТ
               </h3>
               <button
+                type="button"
                 onClick={addTubingInterval}
-                className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-semibold"
+                className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-semibold whitespace-nowrap"
               >
                 <Plus className="w-3.5 h-3.5" /> Добавить секцию
               </button>
@@ -212,7 +264,7 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="text-[11px] text-slate-400 uppercase bg-slate-800/60 border-b border-slate-700">
+                <thead className="text-[11px] text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="py-2 px-3">#</th>
                     <th className="py-2 px-3">Dнар НКТ (мм)</th>
@@ -222,49 +274,52 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
                     <th className="py-2 px-3"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {state.tubingIntervals.map((item, idx) => {
                     const dTubingInner = item.tubingDn - 2 * item.tubingS;
+                    const isInvalidGeo = dTubingInner <= 0;
                     const vol =
-                      dTubingInner > 0
+                      !isInvalidGeo
                         ? (Math.PI / 4) * Math.pow(dTubingInner / 1000, 2) * item.length
                         : 0;
                     return (
-                      <tr key={item.id} className="hover:bg-slate-800/30">
-                        <td className="py-2 px-3 font-mono text-slate-400">{idx + 1}</td>
+                      <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="py-2 px-3 font-mono text-slate-500 dark:text-slate-400">{idx + 1}</td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
                             value={item.tubingDn}
                             onChange={val => updateTubingInterval(item.id, { tubingDn: val })}
-                            className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
-                            
                             value={item.tubingS}
                             onChange={val => updateTubingInterval(item.id, { tubingS: val })}
-                            className="w-16 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-16 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
                         <td className="py-2 px-3">
                           <NumericInput
-                            
                             value={item.length}
                             onChange={val => updateTubingInterval(item.id, { length: val })}
-                            className="w-20 bg-slate-800 border border-slate-700 rounded px-2 py-1 font-mono text-white text-xs outline-none"
+                            className="w-20 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-mono text-slate-900 dark:text-white text-xs outline-none focus:border-blue-500"
                           />
                         </td>
-                        <td className="py-2 px-3 text-right font-mono font-bold text-purple-400">
-                          {vol.toFixed(2)}
+                        <td
+                          className={`py-2 px-3 text-right font-mono font-bold ${
+                            isInvalidGeo ? 'text-rose-600 dark:text-rose-400' : 'text-purple-600 dark:text-purple-400'
+                          }`}
+                        >
+                          {isInvalidGeo ? 'Ошибка Ø' : vol.toFixed(2)}
                         </td>
                         <td className="py-2 px-3 text-right">
                           <button
+                            type="button"
                             onClick={() => removeTubingInterval(item.id)}
                             disabled={state.tubingIntervals.length <= 1}
-                            className="text-slate-500 hover:text-rose-400 disabled:opacity-30 transition"
+                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-30 transition"
+                            aria-label="Удалить секцию"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -280,57 +335,61 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
 
         {/* Results Summary Cards */}
         <div className="space-y-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
-            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wide border-b border-slate-800 pb-2">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 transition-colors">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide border-b border-slate-200 dark:border-slate-800 pb-2">
               Итоговые объёмы
             </h3>
 
-            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5">
-              <div className="text-[11px] font-semibold text-amber-300 uppercase">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3.5">
+              <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-300 uppercase">
                 Суммарный объём затрубного пр-ва
               </div>
-              <div className="text-2xl font-extrabold text-white font-mono mt-1">
-                {volumes.totalAnnulusVolM3.toFixed(2)} <span className="text-sm font-normal text-slate-400">м³</span>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono mt-1">
+                {volumes.totalAnnulusVolM3.toFixed(2)}{' '}
+                <span className="text-sm font-normal text-slate-500 dark:text-slate-400">м³</span>
               </div>
-              <div className="text-xs text-slate-400 mt-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Общая длина интервалов: {volumes.totalAnnulusLengthM} м
               </div>
             </div>
 
-            <div className="bg-slate-800/60 border border-slate-700/80 rounded-xl p-3.5">
-              <div className="text-[11px] font-semibold text-purple-300 uppercase">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl p-3.5">
+              <div className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 uppercase">
                 Суммарный внутренний объём НКТ
               </div>
-              <div className="text-2xl font-extrabold text-white font-mono mt-1">
-                {volumes.totalTubingVolM3.toFixed(2)} <span className="text-sm font-normal text-slate-400">м³</span>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-white font-mono mt-1">
+                {volumes.totalTubingVolM3.toFixed(2)}{' '}
+                <span className="text-sm font-normal text-slate-500 dark:text-slate-400">м³</span>
               </div>
-              <div className="text-xs text-slate-400 mt-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Общая длина колонны: {volumes.totalTubingLengthM} м
               </div>
             </div>
 
-            <div className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-3.5">
-              <div className="text-[11px] font-semibold text-blue-300 uppercase">
+            <div className="bg-blue-50 dark:bg-blue-600/10 border border-blue-200 dark:border-blue-500/30 rounded-xl p-3.5">
+              <div className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase">
                 Полный объём скважины (НКТ + Затруб)
               </div>
-              <div className="text-2xl font-extrabold text-blue-400 font-mono mt-1">
-                {(volumes.totalAnnulusVolM3 + volumes.totalTubingVolM3).toFixed(2)} <span className="text-sm font-normal text-slate-300">м³</span>
+              <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 font-mono mt-1">
+                {(volumes.totalAnnulusVolM3 + volumes.totalTubingVolM3).toFixed(2)}{' '}
+                <span className="text-sm font-normal text-slate-600 dark:text-slate-300">м³</span>
               </div>
-              <div className="text-xs text-slate-400 mt-0.5">
-                Объём для двух циклов глушения: {((volumes.totalAnnulusVolM3 + volumes.totalTubingVolM3) * 1.5).toFixed(1)} м³
+              <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Объём для 1.5 циклов глушения: {((volumes.totalAnnulusVolM3 + volumes.totalTubingVolM3) * 1.5).toFixed(1)} м³
               </div>
             </div>
 
             {/* Mass Flow Rate */}
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3.5">
-              <div className="text-[11px] font-semibold text-emerald-300 uppercase flex items-center gap-1.5">
+            <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-3.5">
+              <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase flex items-center gap-1.5">
                 <Scale className="w-3.5 h-3.5" />
                 Массовый дебит чистой нефти
               </div>
-              <div className="text-2xl font-extrabold text-emerald-400 font-mono mt-1">
-                {volumes.oilMassTonsDay.toFixed(1)} <span className="text-sm font-normal text-slate-300">т/сут</span>
+              <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-1">
+                {volumes.oilMassTonsDay.toFixed(1)}{' '}
+                <span className="text-sm font-normal text-slate-600 dark:text-slate-300">т/сут</span>
               </div>
-              <div className="text-xs text-slate-400 mt-0.5">
+              <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                 При обводнённости {state.waterCut}% и плотности нефти {state.oilDensity} кг/м³
               </div>
             </div>
@@ -339,19 +398,19 @@ export const VolumesTab: React.FC<VolumesTabProps> = ({ state, calc, updateState
       </div>
 
       {/* Guide Details */}
-      <details className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 leading-relaxed">
-        <summary className="font-semibold text-blue-400 cursor-pointer select-none flex items-center gap-1.5 hover:text-blue-300">
+      <details className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed transition-colors">
+        <summary className="font-semibold text-blue-600 dark:text-blue-400 cursor-pointer select-none flex items-center gap-1.5 hover:text-blue-500 dark:hover:text-blue-300">
           <HelpCircle className="w-4 h-4" />
-          📘 Технологическое назначение расчёта ступенчатых объёмов
+          Технологическое назначение расчёта ступенчатых объёмов
         </summary>
-        <div className="mt-3 pt-3 border-t border-slate-800 space-y-2">
+        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
           <p>
             В скважинах часто применяются комбинированные эксплуатационные колонны (например, верхняя секция 168 мм, хвостовик 146 мм) либо ступенчатые подвески НКТ (например, 73 мм вверху и 60 мм у насоса).
           </p>
           <p>
             Точный поинтервальный учёт внутреннего объёма НКТ и кольцевого затрубного пространства необходим для:
           </p>
-          <ul className="list-disc pl-5 space-y-1 text-slate-400">
+          <ul className="list-disc pl-5 space-y-1 text-slate-500 dark:text-slate-400">
             <li>Точного расчёта объёма жидкости глушения при смене насоса или глушении перед ТКРС (прямая или обратная циркуляция);</li>
             <li>Определения времени вытеснения пачки химреагентов (ингибиторов солеотложения, коррозии, растворителей АСПО);</li>
             <li>Контроля времени движения волны давления при снятии КВД (кривых восстановления давления).</li>
