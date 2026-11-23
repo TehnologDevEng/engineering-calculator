@@ -20,7 +20,7 @@ interface HeaderProps {
   onReset: () => void;
   onSave: () => void;
   onPrint: () => void;
-  onApplyPreset: (presetState: Partial<WellState>) => void;
+  onApplyPreset: (presetState: Partial<WellState>, presetName?: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -65,10 +65,13 @@ export const Header: React.FC<HeaderProps> = ({
               <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
               <select
                 aria-label="Выбрать готовый тип скважины"
-                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-medium outline-none focus:border-blue-500 transition cursor-pointer max-w-[210px]"
+                className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-medium outline-none focus:border-blue-500 transition cursor-pointer max-w-[260px]"
                 onChange={(e) => {
                   const preset = WELL_PRESETS.find((p) => p.id === e.target.value);
-                  if (preset) onApplyPreset(preset.state);
+                  if (preset) {
+                    onApplyPreset(preset.state, preset.name);
+                    e.target.value = '';
+                  }
                 }}
                 defaultValue=""
               >
@@ -76,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
                   Типовой сценарий...
                 </option>
                 {WELL_PRESETS.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <option key={p.id} value={p.id} title={p.description}>
                     {p.name}
                   </option>
                 ))}

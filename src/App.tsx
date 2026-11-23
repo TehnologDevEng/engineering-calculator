@@ -281,7 +281,23 @@ export default function App() {
 
   const handleApplyPreset = useCallback(
     (presetState: Partial<WellState>, presetName?: string) => {
-      setWellState((prev) => ({ ...prev, ...presetState }));
+      const merged: WellState = {
+        ...DEFAULT_WELL_STATE,
+        ...presetState,
+        annulusIntervals: presetState.annulusIntervals
+          ? presetState.annulusIntervals.map((item) => ({ ...item }))
+          : DEFAULT_WELL_STATE.annulusIntervals.map((item) => ({ ...item })),
+        tubingIntervals: presetState.tubingIntervals
+          ? presetState.tubingIntervals.map((item) => ({ ...item }))
+          : DEFAULT_WELL_STATE.tubingIntervals.map((item) => ({ ...item })),
+      };
+      if (merged.levelInputMode === 'tmsp') {
+        const tmsp = calculateLevelsFromTmsp(merged);
+        merged.dynLevel = tmsp.dynLevel;
+        merged.pkvHdyn = tmsp.dynLevel;
+        merged.pkvHstat = tmsp.statLevel;
+      }
+      setWellState(merged);
       showToast(
         presetName
           ? `Загружен сценарий: ${presetName}`
@@ -530,7 +546,6 @@ export default function App() {
                 state={wellState}
                 calc={calc}
                 updateState={handleUpdateState}
-                onApplyPreset={handleApplyPreset}
                 onNavigateTab={setActiveTab}
               />
             )}

@@ -1,8 +1,7 @@
 import React from 'react';
 import { ActiveTab, WellState, FullCalculations } from '../../types';
-import { WELL_PRESETS } from '../../data/constants';
 import { WellProfileChart } from '../charts/WellProfileChart';
-import { Gauge, Compass, Settings2, AlertTriangle, Sparkles, Radio } from 'lucide-react';
+import { Gauge, Compass, Settings2, AlertTriangle, Radio } from 'lucide-react';
 import { NumericInput } from '../NumericInput';
 import { FieldHint } from '../FieldHint';
 import { calculateLevelsFromTmsp } from '../../utils/calculations';
@@ -11,7 +10,6 @@ interface WellSchemeTabProps {
   state: WellState;
   calc: FullCalculations;
   updateState: (updates: Partial<WellState>) => void;
-  onApplyPreset: (presetState: Partial<WellState>, presetName?: string) => void;
   onNavigateTab: (tab: ActiveTab) => void;
 }
 
@@ -19,7 +17,6 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({
   state,
   calc,
   updateState,
-  onApplyPreset,
   onNavigateTab,
 }) => {
   const tmspInfo = calculateLevelsFromTmsp(state);
@@ -74,38 +71,6 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({
               <div className="text-base font-bold text-blue-600 dark:text-blue-400 font-mono">{state.dynLevel} м</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick-start Preset Cards */}
-      <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 transition-colors">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-              Быстрый старт: выберите типовой случай скважины
-            </h3>
-          </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:inline">
-            Заполнит эталонные параметры в 1 клик
-          </span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-          {WELL_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => onApplyPreset(preset.state, preset.name)}
-              className="text-left p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 hover:border-blue-400 dark:hover:border-blue-500/60 hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition flex flex-col justify-between gap-1.5"
-            >
-              <div className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
-                {preset.name}
-              </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                {preset.description}
-              </div>
-            </button>
-          ))}
         </div>
       </div>
 
