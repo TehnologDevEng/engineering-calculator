@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import { WellState, ActiveTab } from './types';
 import { DEFAULT_WELL_STATE } from './data/constants';
-import { calculateAll } from './utils/calculations';
+import { calculateAll, calculateLevelsFromTmsp } from './utils/calculations';
 import { Header } from './components/Header';
 import { SummaryMetrics } from './components/SummaryMetrics';
 import { Footer } from './components/Footer';
@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   BarChart3,
   AlertTriangle,
+  TrendingUp,
 } from 'lucide-react';
 
 // Lazy load tabs to reduce initial bundle size
@@ -34,6 +35,9 @@ const NktTab = React.lazy(() =>
 );
 const HydraulicsTab = React.lazy(() =>
   import('./components/tabs/HydraulicsTab').then((m) => ({ default: m.HydraulicsTab }))
+);
+const HeadMarginTab = React.lazy(() =>
+  import('./components/tabs/HeadMarginTab').then((m) => ({ default: m.HeadMarginTab }))
 );
 const ElectroTab = React.lazy(() =>
   import('./components/tabs/ElectroTab').then((m) => ({ default: m.ElectroTab }))
@@ -144,7 +148,36 @@ export default function App() {
   const calc = useMemo(() => calculateAll(wellState), [wellState]);
 
   const handleUpdateState = useCallback((updates: Partial<WellState>) => {
-    setWellState((prev) => ({ ...prev, ...updates }));
+    setWellState((prev) => {
+      const next: WellState = { ...prev, ...updates };
+      const tmspTriggerKeys: (keyof WellState)[] = [
+        'levelInputMode',
+        'tmspPDyn',
+        'tmspPStat',
+        'tmspUseVertical',
+        'tmspUseDensity',
+        'pumpDepth',
+        'headElongation',
+        'pZatr',
+        'waterCut',
+        'oilDensity',
+        'waterDensity',
+      ];
+      const shouldRecalcTmsp =
+        next.levelInputMode === 'tmsp' &&
+        tmspTriggerKeys.some((k) => k in updates);
+
+      if (shouldRecalcTmsp) {
+        const { dynLevel, statLevel } = calculateLevelsFromTmsp(next);
+        next.dynLevel = dynLevel;
+        next.pkvHstat = statLevel;
+        next.measuredPtube = next.tmspPDyn;
+        next.headPtms = next.tmspPDyn;
+        next.pkvPtmsStop = next.tmspPDyn;
+        next.pkvPtmsStart = next.tmspPStat;
+      }
+      return next;
+    });
   }, []);
 
   const showToast = useCallback((msg: string) => {
@@ -270,6 +303,7 @@ export default function App() {
   }, []);
 
   const wellSchemeWarning =
+    (wellState.levelInputMode === 'tmsp' && wellState.tmspPDyn >= wellState.tmspPStat) ||
     wellState.dynLevel >= wellState.pumpDepth ||
     wellState.pumpDepth > wellState.depthPlast ||
     wellState.pkvHstat >= wellState.dynLevel ||
@@ -281,6 +315,7 @@ export default function App() {
     wellState.dynLevel >= wellState.pumpDepth;
 
   const nktWarning = !calc.nkt.isStrengthOk || calc.nkt.sandCarryStatus === 'danger';
+  const headMarginWarning = calc.headMargin.status === 'deficit';
   const electroWarning = calc.electro.deltaUPct > 15 || !calc.electro.isCableOk;
   const coolingWarning = !calc.coolingKill.isCoolingOk;
   const pkvWarning = !calc.pkv.isOptimal;
@@ -316,6 +351,14 @@ export default function App() {
           icon: Gauge,
           color: 'text-blue-600 dark:text-blue-400',
           hasWarning: hydraulicsWarning,
+        },
+        {
+          id: 'head-margin',
+          label: 'Запас напора',
+          shortLabel: 'Запас напора (ТМС / F)',
+          icon: TrendingUp,
+          color: 'text-sky-600 dark:text-sky-400',
+          hasWarning: headMarginWarning,
         },
         {
           id: 'nkt',
@@ -525,6 +568,14 @@ export default function App() {
               <HydraulicsTab
                 state={wellState}
                 hydraulics={calc.hydraulics}
+                onChange={handleUpdateState}
+              />
+            )}
+
+            {activeTab === 'head-margin' && (
+              <HeadMarginTab
+                state={wellState}
+                calc={calc}
                 onChange={handleUpdateState}
               />
             )}

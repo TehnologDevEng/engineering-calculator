@@ -383,6 +383,25 @@ export const DEFAULT_WELL_STATE: WellState = {
   tubingIntervals: [
     { id: '1', tubingDn: 73, tubingS: 5.5, length: 1750 }
   ],
+
+  // Module 8: Head Margin (Запас напора)
+  headMode: 'tms',
+  headMethod: 'express',
+  headPumpDepth: 1750,
+  headPump50Hz: 2450,
+  headElongation: 180,
+  headPBuf: 18,
+  headPZatr: 14,
+  headFreq: 50,
+  headPtms: 46,
+  headNdVert: 1240,
+
+  // ТМСП (пересчёт Hдин и Hстат на схеме скважины)
+  levelInputMode: 'manual',
+  tmspPDyn: 46,
+  tmspPStat: 101,
+  tmspUseVertical: false,
+  tmspUseDensity: true,
 };
 
 export const WELL_PRESETS: { id: string; name: string; description: string; state: Partial<WellState> }[] = [

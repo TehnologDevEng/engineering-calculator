@@ -3,6 +3,7 @@ import {
   PkvResults,
   NktResults,
   HydraulicsResults,
+  HeadMarginResults,
   ElectroResults,
   CoolingKillResults,
   ChokeResults,
@@ -608,10 +609,100 @@ export function calculateVolumes(state: WellState): VolumesResults {
   };
 }
 
+export function calculateLevelsFromTmsp(state: WellState) {
+  const waterFrac = state.waterCut / 100;
+  const rhoMix = state.oilDensity * (1 - waterFrac) + state.waterDensity * waterFrac;
+  const coeffMPerAtm = state.tmspUseDensity
+    ? 101325 / (Math.max(500, rhoMix) * 9.81)
+    : 10;
+  const baseDepth = state.tmspUseVertical
+    ? Math.max(0, state.pumpDepth - state.headElongation)
+    : state.pumpDepth;
+
+  const dynLevel = Math.max(0, Math.round(baseDepth - (state.tmspPDyn - state.pZatr) * coeffMPerAtm));
+  const statLevel = Math.max(0, Math.round(baseDepth - (state.tmspPStat - state.pZatr) * coeffMPerAtm));
+
+  return {
+    rhoMix,
+    coeffMPerAtm,
+    baseDepth,
+    dynLevel,
+    statLevel,
+  };
+}
+
+export function calculateHeadMargin(state: WellState, rhoMix: number): HeadMarginResults {
+  const hVertPump = Math.max(0, state.headPumpDepth - state.headElongation);
+  const coeffMPerAtm =
+    state.headMethod === 'density'
+      ? 101325 / (Math.max(500, rhoMix) * 9.81)
+      : 10;
+
+  const ndVertM =
+    state.headMode === 'tms'
+      ? hVertPump - (state.headPtms - state.headPZatr) * coeffMPerAtm
+      : state.headNdVert;
+
+  const requiredHeadM = ndVertM + (state.headPBuf - state.headPZatr) * coeffMPerAtm;
+  const headAtFreqM = state.headPump50Hz * Math.pow(state.headFreq / 50, 2);
+
+  const headAtFreqRounded = Math.round(headAtFreqM);
+  const requiredHeadRounded = Math.round(requiredHeadM);
+  const headMarginM = headAtFreqRounded - requiredHeadRounded;
+  const headMarginPct =
+    requiredHeadM > 0 ? (headMarginM / requiredHeadM) * 100 : 0;
+
+  const safeH50 = Math.max(1, state.headPump50Hz);
+  const minFreqZeroHz =
+    requiredHeadM > 0 ? 50 * Math.sqrt(requiredHeadM / safeH50) : 0;
+  const recFreqMarginHz =
+    requiredHeadM + 200 > 0 ? 50 * Math.sqrt((requiredHeadM + 200) / safeH50) : 0;
+
+  let status: 'deficit' | 'low' | 'ok' = 'ok';
+  let statusText = 'Запас напора достаточный — установка уверенно преодолевает противодавление на устье.';
+  if (headMarginM < 0) {
+    status = 'deficit';
+    statusText = `Дефицит напора (${headMarginM} м)! Развиваемого напора не хватает для подъёма жидкости при текущем Pбуф и частоте F = ${state.headFreq} Гц.`;
+  } else if (headMarginM < 150) {
+    status = 'low';
+    statusText = `Малый запас напора (+${headMarginM} м). Установка работает на грани — при росте Pбуф, износе ступеней или снижении уровня возможен срыв подачи.`;
+  }
+
+  const baseFreq = Math.max(25, state.headFreq);
+  const freqSteps = [-4, -2, 0, 2, 4]
+    .map((delta) => Number((baseFreq + delta).toFixed(1)))
+    .filter((f) => f >= 20 && f <= 200);
+
+  const freqTable = freqSteps.map((f) => {
+    const hF = Math.round(state.headPump50Hz * Math.pow(f / 50, 2));
+    return {
+      freq: f,
+      headM: hF,
+      marginM: hF - requiredHeadRounded,
+    };
+  });
+
+  return {
+    hVertPump,
+    coeffMPerAtm,
+    ndVertM,
+    requiredHeadM,
+    headAtFreqM: headAtFreqRounded,
+    headMarginM,
+    headMarginPct,
+    minFreqZeroHz,
+    recFreqMarginHz,
+    status,
+    statusText,
+    freqTable,
+  };
+}
+
 export function calculateAll(state: WellState): FullCalculations {
   const pkv = calculatePkv(state);
   const nkt = calculateNkt(state);
   const hydraulics = calculateHydraulics(state);
+  const headMargin = calculateHeadMargin(state, hydraulics.rhoMix);
   const electro = calculateElectro(state);
   const coolingKill = calculateCoolingKill(state, hydraulics.scaledQ);
   const choke = calculateChoke(state);
@@ -621,6 +712,7 @@ export function calculateAll(state: WellState): FullCalculations {
     pkv,
     nkt,
     hydraulics,
+    headMargin,
     electro,
     coolingKill,
     choke,

@@ -2,9 +2,10 @@ import React from 'react';
 import { ActiveTab, WellState, FullCalculations } from '../../types';
 import { WELL_PRESETS } from '../../data/constants';
 import { WellProfileChart } from '../charts/WellProfileChart';
-import { Gauge, Compass, Settings2, AlertTriangle, Sparkles } from 'lucide-react';
+import { Gauge, Compass, Settings2, AlertTriangle, Sparkles, Radio } from 'lucide-react';
 import { NumericInput } from '../NumericInput';
 import { FieldHint } from '../FieldHint';
+import { calculateLevelsFromTmsp } from '../../utils/calculations';
 
 interface WellSchemeTabProps {
   state: WellState;
@@ -21,8 +22,13 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({
   onApplyPreset,
   onNavigateTab,
 }) => {
-  // Real-time logical checks for beginners
+  const tmspInfo = calculateLevelsFromTmsp(state);
+
+  // Real-time logical checks
   const warnings: string[] = [];
+  if (state.levelInputMode === 'tmsp' && state.tmspPDyn >= state.tmspPStat) {
+    warnings.push(`Давление ТМСП при работе (${state.tmspPDyn} атм) не может быть выше или равно статическому (${state.tmspPStat} атм).`);
+  }
   if (state.dynLevel >= state.pumpDepth) {
     warnings.push(`Динамический уровень (${state.dynLevel} м) ниже или равен спуску насоса (${state.pumpDepth} м) — насос будет работать «всухую» (без столба над приёмом).`);
   }
@@ -190,26 +196,152 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  H дин. <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
-                  <FieldHint hintKey="dynLevel" />
-                </label>
-                <NumericInput
-                  value={state.dynLevel}
-                  onChange={(val) => updateState({ dynLevel: val })}
-                />
-              </div>
+              {/* Mode toggle: Manual levels vs ТМСП */}
+              <div className="col-span-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                    <Radio className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    Уровни Hдин и Hстат
+                  </span>
+                  <div className="inline-flex p-0.5 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => updateState({ levelInputMode: 'manual' })}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
+                        state.levelInputMode === 'manual'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Эхолот
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateState({ levelInputMode: 'tmsp' })}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
+                        state.levelInputMode === 'tmsp'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      По ТМСП
+                    </button>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  H стат. <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
-                  <FieldHint hintKey="pkvHstat" />
-                </label>
-                <NumericInput
-                  value={state.pkvHstat}
-                  onChange={(val) => updateState({ pkvHstat: val })}
-                />
+                {state.levelInputMode === 'manual' ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        H дин. <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
+                        <FieldHint hintKey="dynLevel" />
+                      </label>
+                      <NumericInput
+                        value={state.dynLevel}
+                        onChange={(val) => updateState({ dynLevel: val })}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        H стат. <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
+                        <FieldHint hintKey="pkvHstat" />
+                      </label>
+                      <NumericInput
+                        value={state.pkvHstat}
+                        onChange={(val) => updateState({ pkvHstat: val })}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-500/30 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Pтмсп дин. <span className="text-blue-600 dark:text-blue-400 font-mono">атм</span>
+                          <FieldHint hintKey="tmspPDyn" />
+                        </label>
+                        <NumericInput
+                          value={state.tmspPDyn}
+                          onChange={(val) => updateState({ tmspPDyn: val })}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Pтмсп стат. <span className="text-blue-600 dark:text-blue-400 font-mono">атм</span>
+                          <FieldHint hintKey="tmspPStat" />
+                        </label>
+                        <NumericInput
+                          value={state.tmspPStat}
+                          onChange={(val) => updateState({ tmspPStat: val })}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Pзатр <span className="text-blue-600 dark:text-blue-400 font-mono">атм</span>
+                          <FieldHint hintKey="pZatr" />
+                        </label>
+                        <NumericInput
+                          value={state.pZatr}
+                          onChange={(val) => updateState({ pZatr: val })}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Удлинение ΔL <span className="text-blue-600 dark:text-blue-400 font-mono">м</span>
+                          <FieldHint hintKey="headElongation" />
+                        </label>
+                        <NumericInput
+                          value={state.headElongation}
+                          onChange={(val) => updateState({ headElongation: val })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-600 dark:text-slate-300">
+                      <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={state.tmspUseVertical}
+                          onChange={(e) => updateState({ tmspUseVertical: e.target.checked })}
+                          className="accent-blue-600 rounded"
+                        />
+                        <span>По вертикали (Hсп − ΔL)</span>
+                      </label>
+                      <label className="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={state.tmspUseDensity}
+                          onChange={(e) => updateState({ tmspUseDensity: e.target.checked })}
+                          className="accent-blue-600 rounded"
+                        />
+                        <span>По ρсм ({Math.round(tmspInfo.rhoMix)} кг/м³)</span>
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-blue-200/80 dark:border-blue-500/20 text-xs">
+                      <div className="bg-white dark:bg-slate-900/90 rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-800">
+                        <div className="text-[10px] uppercase text-slate-500 dark:text-slate-400">
+                          Расчётный Hдин {state.tmspUseVertical ? '(верт.)' : ''}
+                        </div>
+                        <div className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">
+                          {state.dynLevel} м
+                        </div>
+                      </div>
+                      <div className="bg-white dark:bg-slate-900/90 rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-800">
+                        <div className="text-[10px] uppercase text-slate-500 dark:text-slate-400">
+                          Расчётный Hстат {state.tmspUseVertical ? '(верт.)' : ''}
+                        </div>
+                        <div className="font-mono font-bold text-sky-600 dark:text-sky-400 text-sm">
+                          {state.pkvHstat} м
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -296,21 +428,41 @@ export const WellSchemeTab: React.FC<WellSchemeTabProps> = ({
                   className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 mt-1"
                 />
               </div>
-              <div>
-                <label className="text-xs text-slate-600 dark:text-slate-400 flex justify-between">
-                  <span>Динамический уровень Hдин:</span>
-                  <span className="font-mono text-slate-900 dark:text-white font-bold">{state.dynLevel} м</span>
-                </label>
-                <input
-                  type="range"
-                  min={100}
-                  max={Math.max(200, state.pumpDepth - 50)}
-                  step={10}
-                  value={state.dynLevel}
-                  onChange={(e) => updateState({ dynLevel: Number(e.target.value) })}
-                  className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 mt-1"
-                />
-              </div>
+              {state.levelInputMode === 'tmsp' ? (
+                <div>
+                  <label className="text-xs text-slate-600 dark:text-slate-400 flex justify-between">
+                    <span>Давление ТМСП (динам.):</span>
+                    <span className="font-mono text-slate-900 dark:text-white font-bold">
+                      {state.tmspPDyn} атм → Hдин = {state.dynLevel} м
+                    </span>
+                  </label>
+                  <input
+                    type="range"
+                    min={Math.max(1, Math.round(state.pZatr))}
+                    max={Math.max(50, Math.round(state.tmspPStat))}
+                    step={1}
+                    value={state.tmspPDyn}
+                    onChange={(e) => updateState({ tmspPDyn: Number(e.target.value) })}
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 mt-1"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-slate-600 dark:text-slate-400 flex justify-between">
+                    <span>Динамический уровень Hдин:</span>
+                    <span className="font-mono text-slate-900 dark:text-white font-bold">{state.dynLevel} м</span>
+                  </label>
+                  <input
+                    type="range"
+                    min={100}
+                    max={Math.max(200, state.pumpDepth - 50)}
+                    step={10}
+                    value={state.dynLevel}
+                    onChange={(e) => updateState({ dynLevel: Number(e.target.value) })}
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 mt-1"
+                  />
+                </div>
+              )}
             </div>
           </div>
 

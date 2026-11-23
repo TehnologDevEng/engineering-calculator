@@ -3,6 +3,7 @@ export type ActiveTab =
   | 'pkv'
   | 'nkt'
   | 'hydraulics'
+  | 'head-margin'
   | 'electro'
   | 'cooling-kill'
   | 'choke'
@@ -114,6 +115,25 @@ export interface WellState {
   // Module 7: Volumes
   annulusIntervals: AnnulusInterval[];
   tubingIntervals: TubingInterval[];
+
+  // Module 8: Head Margin (Запас напора)
+  headMode: 'tms' | 'nd';
+  headMethod: 'express' | 'density';
+  headPumpDepth: number;   // Глубина спуска Hсп, м
+  headPump50Hz: number;    // Напор установки на F=50 Гц, м
+  headElongation: number;  // Удлинение Hсп (Hсп - Hверт), м
+  headPBuf: number;        // Pбуф, атм
+  headPZatr: number;       // Pзатр, атм
+  headFreq: number;        // Текущая частота F, Гц
+  headPtms: number;        // Pтмс, атм (режим 'tms')
+  headNdVert: number;      // Нд по вертикали, м (режим 'nd')
+
+  // ТМСП: пересчёт динамического и статического уровней на схеме скважины
+  levelInputMode: 'manual' | 'tmsp';
+  tmspPDyn: number;        // Давление по ТМСП при работе (динамика), атм
+  tmspPStat: number;       // Давление по ТМСП в покое (статика), атм
+  tmspUseVertical: boolean; // Учитывать удлинение Hсп (вертикальная глубина)
+  tmspUseDensity: boolean;  // Пересчёт по фактической ρсм (иначе ×10 м/атм)
 }
 
 export interface PkvResults {
@@ -271,10 +291,26 @@ export interface VolumesResults {
   oilMassTonsDay: number;
 }
 
+export interface HeadMarginResults {
+  hVertPump: number;
+  coeffMPerAtm: number;
+  ndVertM: number;
+  requiredHeadM: number;
+  headAtFreqM: number;
+  headMarginM: number;
+  headMarginPct: number;
+  minFreqZeroHz: number;
+  recFreqMarginHz: number;
+  status: 'deficit' | 'low' | 'ok';
+  statusText: string;
+  freqTable: { freq: number; headM: number; marginM: number }[];
+}
+
 export interface FullCalculations {
   pkv: PkvResults;
   nkt: NktResults;
   hydraulics: HydraulicsResults;
+  headMargin: HeadMarginResults;
   electro: ElectroResults;
   coolingKill: CoolingKillResults;
   choke: ChokeResults;
