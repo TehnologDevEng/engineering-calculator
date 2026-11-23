@@ -53,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate">
-                Схема · ПКВ · НКТ · Приток и газ · СУ и ТМПН · Охлаждение и глушение · Штуцер
+                Схема и ТМСП · Приток и газ · Напор и ПЭД · НКТ и глушение · СУ и ТМПН · ПКВ · Штуцер
               </p>
             </div>
           </div>

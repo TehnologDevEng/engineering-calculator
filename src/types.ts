@@ -5,7 +5,6 @@ export type ActiveTab =
   | 'hydraulics'
   | 'head-margin'
   | 'electro'
-  | 'cooling-kill'
   | 'choke'
   | 'volumes'
   | 'charts'

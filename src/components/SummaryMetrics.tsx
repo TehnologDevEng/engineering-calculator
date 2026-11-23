@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab, FullCalculations } from '../types';
-import { Clock, Pipette, Gauge, Flame, Zap, Cpu, ArrowUpRight } from 'lucide-react';
+import { Clock, Pipette, Gauge, TrendingUp, Zap, Cpu, ArrowUpRight } from 'lucide-react';
 
 interface SummaryMetricsProps {
   calc: FullCalculations;
@@ -13,7 +13,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
   activeTab,
   onNavigateTab,
 }) => {
-  const { pkv, nkt, hydraulics, electro } = calc;
+  const { pkv, nkt, hydraulics, headMargin, coolingKill, electro } = calc;
 
   const cards: {
     id: ActiveTab;
@@ -30,8 +30,65 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
     tooltip: string;
   }[] = [
     {
+      id: 'head-margin',
+      title: '1. Напор и ПЭД',
+      icon: TrendingUp,
+      accentText: 'text-sky-600 dark:text-sky-400',
+      label: 'Запас напора',
+      value: `${headMargin.headMarginM > 0 ? '+' : ''}${headMargin.headMarginM} м`,
+      valueColor:
+        headMargin.status === 'deficit'
+          ? 'text-rose-600 dark:text-rose-400'
+          : headMargin.status === 'low'
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-emerald-600 dark:text-emerald-400',
+      footerLabel: 'Омыв ПЭД:',
+      footerValue: coolingKill.isCoolingOk
+        ? `${coolingKill.velocity.toFixed(2)} м/с`
+        : `${coolingKill.velocity.toFixed(2)} м/с · перегрев`,
+      footerColor: coolingKill.isCoolingOk
+        ? 'text-slate-900 dark:text-white'
+        : 'text-rose-600 dark:text-rose-400',
+      hasWarning: headMargin.status === 'deficit' || !coolingKill.isCoolingOk,
+      tooltip: 'Открыть расчёт запаса напора и охлаждения ПЭД',
+    },
+    {
+      id: 'hydraulics',
+      title: '2. Приток и газ',
+      icon: Gauge,
+      accentText: 'text-blue-600 dark:text-blue-400',
+      label: 'Давление Pпр',
+      value: `${hydraulics.pPr.toFixed(1)} атм`,
+      footerLabel: 'Газ βвх:',
+      footerValue: `${hydraulics.betaIn.toFixed(1)} %`,
+      footerColor:
+        hydraulics.betaIn < 15
+          ? 'text-emerald-600 dark:text-emerald-400'
+          : hydraulics.betaIn < 25
+          ? 'text-amber-600 dark:text-amber-400'
+          : 'text-rose-600 dark:text-rose-400',
+      hasWarning: hydraulics.betaIn >= 25,
+      tooltip: 'Открыть расчёт притока, Pпр и газозащиты',
+    },
+    {
+      id: 'nkt',
+      title: '3. НКТ и глушение',
+      icon: Pipette,
+      accentText: 'text-purple-600 dark:text-purple-400',
+      label: 'Потери трения',
+      value: `${nkt.deltaPAtm.toFixed(2)} атм`,
+      footerLabel: 'ЖГ ρглуш:',
+      footerValue: `${coolingKill.rhoKillGCm3.toFixed(2)} г/см³`,
+      footerColor:
+        !nkt.isStrengthOk || nkt.sandCarryStatus === 'danger'
+          ? 'text-rose-600 dark:text-rose-400'
+          : 'text-slate-900 dark:text-white',
+      hasWarning: !nkt.isStrengthOk || nkt.sandCarryStatus === 'danger',
+      tooltip: 'Открыть расчёт НКТ, прочности и глушения скважины',
+    },
+    {
       id: 'pkv',
-      title: '1. Режим ПКВ',
+      title: '4. Режим ПКВ',
       icon: Clock,
       accentText: 'text-amber-600 dark:text-amber-400',
       label: 'Откачка / Пауза',
@@ -40,61 +97,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
       footerValue: pkv.isOptimal ? `${pkv.startsPerDay.toFixed(1)} /сут` : `${pkv.startsPerDay.toFixed(1)}/сут · уточнить`,
       footerColor: pkv.isOptimal ? 'text-slate-900 dark:text-white' : 'text-rose-600 dark:text-rose-400',
       hasWarning: !pkv.isOptimal,
-      tooltip: 'Нажмите, чтобы открыть расчёт режима ПКВ',
-    },
-    {
-      id: 'nkt',
-      title: '2. Поток в НКТ',
-      icon: Pipette,
-      accentText: 'text-purple-600 dark:text-purple-400',
-      label: 'Потери трения',
-      value: `${nkt.deltaPAtm.toFixed(2)} атм`,
-      footerLabel: 'Скорость:',
-      footerValue: `${nkt.vNkt.toFixed(2)} м/с`,
-      footerColor: nkt.sandCarryStatus === 'danger' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white',
-      hasWarning: !nkt.isStrengthOk || nkt.sandCarryStatus === 'danger',
-      tooltip: 'Нажмите, чтобы открыть гидравлику и прочность НКТ',
-    },
-    {
-      id: 'hydraulics',
-      title: '3. Приём Pпр',
-      icon: Gauge,
-      accentText: 'text-blue-600 dark:text-blue-400',
-      label: 'Давление приёма',
-      value: `${hydraulics.pPr.toFixed(1)} атм`,
-      footerLabel: 'До Pнас:',
-      footerValue:
-        hydraulics.deltaSat >= 0
-          ? `+${hydraulics.deltaSat.toFixed(1)} атм`
-          : `${hydraulics.deltaSat.toFixed(1)} атм`,
-      footerColor:
-        hydraulics.deltaSat >= 0
-          ? 'text-emerald-600 dark:text-emerald-400'
-          : 'text-amber-600 dark:text-amber-400',
-      tooltip: 'Нажмите, чтобы открыть расчёт притока и Pпр',
-    },
-    {
-      id: 'hydraulics',
-      title: '4. Газ βвх',
-      icon: Flame,
-      accentText: 'text-amber-600 dark:text-amber-400',
-      label: 'Газ на входе',
-      value: `${hydraulics.betaIn.toFixed(1)} %`,
-      valueColor:
-        hydraulics.betaIn < 15
-          ? 'text-emerald-600 dark:text-emerald-400'
-          : hydraulics.betaIn < 25
-          ? 'text-amber-600 dark:text-amber-400'
-          : 'text-rose-600 dark:text-rose-400',
-      footerLabel: 'Защита:',
-      footerValue:
-        hydraulics.betaIn < 15 ? 'Норма' : hydraulics.betaIn <= 50 ? 'Нужен МН-ГС5' : 'Нужен ГС-10',
-      footerColor:
-        hydraulics.betaIn < 15
-          ? 'text-slate-700 dark:text-slate-200'
-          : 'text-amber-700 dark:text-amber-300',
-      hasWarning: hydraulics.betaIn >= 25,
-      tooltip: 'Нажмите, чтобы перейти к подбору газозащиты',
+      tooltip: 'Открыть расчёт периодического режима ПКВ',
     },
     {
       id: 'electro',
@@ -110,7 +113,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
           ? 'text-rose-600 dark:text-rose-400'
           : 'text-yellow-700 dark:text-yellow-400',
       hasWarning: electro.deltaUPct > 15 || !electro.isCableOk,
-      tooltip: 'Нажмите, чтобы открыть подбор кабеля и отпайки ТМПН',
+      tooltip: 'Открыть подбор кабеля и отпайки ТМПН',
     },
     {
       id: 'electro',
@@ -122,7 +125,7 @@ export const SummaryMetrics: React.FC<SummaryMetricsProps> = ({
       footerLabel: 'Ток Iном:',
       footerValue: `${electro.topSUs[0]?.current || 160} А (+${Math.max(0, Math.round(electro.topSUs[0]?.margin || 15))}%)`,
       footerColor: 'text-emerald-600 dark:text-emerald-400',
-      tooltip: 'Нажмите, чтобы посмотреть рекомендованные станции управления',
+      tooltip: 'Посмотреть рекомендованные станции управления',
     },
   ];
 

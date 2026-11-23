@@ -1,18 +1,19 @@
 import React from 'react';
 import { NumericInput } from '../NumericInput';
 import { FieldHint } from '../FieldHint';
-import { WellState, NktResults } from '../../types';
-import { Pipette, ShieldCheck, Download, HelpCircle, Layers, Wrench, Link2 } from 'lucide-react';
+import { WellState, NktResults, CoolingKillResults } from '../../types';
+import { Pipette, ShieldCheck, Download, HelpCircle, Layers, Wrench, Link2, Droplets } from 'lucide-react';
 
 interface NktTabProps {
   state: WellState;
   nkt: NktResults;
+  coolingKill: CoolingKillResults;
   onChange: (updates: Partial<WellState>) => void;
 }
 
 const STEEL_ORDER: WellState['nktSteelGrade'][] = ['D', 'K', 'E', 'L', 'M'];
 
-export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
+export const NktTab: React.FC<NktTabProps> = ({ state, nkt, coolingKill, onChange }) => {
   const loadExample = () => {
     onChange({
       nktSize: 73,
@@ -55,13 +56,13 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
         <div>
           <div className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 mb-1">
-            Модуль 02 · Лифтовая колонна
+            Лифтовая колонна и ПРС / КРС
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Гидравлический и прочностной расчёт колонны НКТ
+            Колонна НКТ и расчёт глушения скважины
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Потери давления на трение по Дарси-Вейсбаху, скорость выноса шлама и запас статической прочности (ГОСТ 633-80)
+            Гидравлические потери по Дарси-Вейсбаху, статическая прочность (ГОСТ 633-80) и расчёт жидкости глушения по объёму НКТ и затруба (РД 08-200-98)
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -471,6 +472,139 @@ export const NktTab: React.FC<NktTabProps> = ({ state, nkt, onChange }) => {
                   )}
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PART 2: WELL KILLING (Directly tied to NKT & Annulus volumes) */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-5 transition-colors">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Droplets className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+              Расчёт глушения скважины (ПРС / КРС)
+            </h3>
+          </div>
+          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 font-mono">
+            РД 08-200-98 · НКТ {state.nktSize} мм / ЭК {state.casingId} мм
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Killing Inputs */}
+          <div className="lg:col-span-5 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Коэффициент запаса kзап
+                <FieldHint hintKey="killSafetyMargin" />
+              </label>
+              <select
+                value={state.killSafetyMargin}
+                onChange={(e) => onChange({ killSafetyMargin: Number(e.target.value) })}
+                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white font-mono focus:border-blue-500 focus:outline-none"
+              >
+                <option value="1.05">1.05 (Запас 5% — до 1200 м)</option>
+                <option value="1.08">1.08 (Запас 8% — 1200–2000 м)</option>
+                <option value="1.10">1.10 (Запас 10% — свыше 2000 м)</option>
+                <option value="1.15">1.15 (Запас 15% — АВПД)</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Pпл, атм
+                  <FieldHint hintKey="pPlast" />
+                </label>
+                <NumericInput
+                  value={state.pPlast}
+                  onChange={(val) => onChange({ pPlast: val })}
+                  className="focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Hпл, м
+                  <FieldHint hintKey="depthPlast" />
+                </label>
+                <NumericInput
+                  value={state.depthPlast}
+                  onChange={(val) => onChange({ depthPlast: val })}
+                  className="focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Dвн ЭК, мм
+                  <FieldHint hintKey="casingId" />
+                </label>
+                <NumericInput
+                  value={state.casingId}
+                  onChange={(val) => onChange({ casingId: val, pkvCasingId: val })}
+                  className="focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl text-xs text-blue-900 dark:text-blue-200 leading-relaxed">
+              Перед началом ПРС/КРС подготовьте не менее{' '}
+              <strong>{coolingKill.vKillReq.toFixed(1)} м³</strong> жидкости глушения плотностью{' '}
+              <strong>{coolingKill.rhoKillGCm3.toFixed(2)} г/см³</strong> ({coolingKill.fluidType}) с контролем выравнивания плотности на выходе из затруба.
+            </div>
+          </div>
+
+          {/* Killing Results */}
+          <div className="lg:col-span-7 divide-y divide-slate-200/80 dark:divide-slate-800/80 text-xs">
+            <div className="py-2.5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/40 px-2.5 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium">
+                Требуемая плотность ЖГ ρглуш:
+              </span>
+              <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">
+                {coolingKill.rhoKillGCm3.toFixed(2)} г/см³ ({coolingKill.rhoKillKgM3} кг/м³)
+              </span>
+            </div>
+
+            <div className="py-2.5 flex justify-between items-center">
+              <span className="text-slate-500 dark:text-slate-400">Тип технологической жидкости глушения:</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-200 text-right">
+                {coolingKill.fluidType}
+                {coolingKill.requiredSaltMassKgPerM3 > 0 && (
+                  <span className="font-mono text-slate-500 dark:text-slate-400 ml-1">
+                    (~{coolingKill.requiredSaltMassKgPerM3} кг/м³)
+                  </span>
+                )}
+              </span>
+            </div>
+
+            <div className="py-2.5 flex justify-between items-center">
+              <span className="text-slate-500 dark:text-slate-400">Внутренний объём колонны НКТ ({state.nktLength} м):</span>
+              <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                {coolingKill.vTubing.toFixed(2)} м³
+              </span>
+            </div>
+
+            <div className="py-2.5 flex justify-between items-center">
+              <span className="text-slate-500 dark:text-slate-400">Объём кольцевого пространства (затруб):</span>
+              <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                {coolingKill.vAnnulus.toFixed(2)} м³
+              </span>
+            </div>
+
+            <div className="py-2.5 flex justify-between items-center">
+              <span className="text-slate-500 dark:text-slate-400">Полный объём скважины до забоя Vскв:</span>
+              <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                {coolingKill.vTotalWell.toFixed(1)} м³
+              </span>
+            </div>
+
+            <div className="py-2.5 flex justify-between items-center bg-slate-50 dark:bg-slate-950/40 px-2.5 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium">
+                Потребный объём жидкости глушения (1.25 V):
+              </span>
+              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                {coolingKill.vKillReq.toFixed(1)} м³
+              </span>
             </div>
           </div>
         </div>

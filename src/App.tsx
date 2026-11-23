@@ -12,7 +12,6 @@ import {
   Pipette,
   Gauge,
   Zap,
-  Snowflake,
   Sliders,
   Database,
   FileText,
@@ -41,9 +40,6 @@ const HeadMarginTab = React.lazy(() =>
 );
 const ElectroTab = React.lazy(() =>
   import('./components/tabs/ElectroTab').then((m) => ({ default: m.ElectroTab }))
-);
-const CoolingKillTab = React.lazy(() =>
-  import('./components/tabs/CoolingKillTab').then((m) => ({ default: m.CoolingKillTab }))
 );
 const ChokeTab = React.lazy(() =>
   import('./components/tabs/ChokeTab').then((m) => ({ default: m.ChokeTab }))
@@ -315,35 +311,22 @@ export default function App() {
     wellState.dynLevel >= wellState.pumpDepth;
 
   const nktWarning = !calc.nkt.isStrengthOk || calc.nkt.sandCarryStatus === 'danger';
-  const headMarginWarning = calc.headMargin.status === 'deficit';
+  const headAndPedWarning = calc.headMargin.status === 'deficit' || !calc.coolingKill.isCoolingOk;
   const electroWarning = calc.electro.deltaUPct > 15 || !calc.electro.isCableOk;
-  const coolingWarning = !calc.coolingKill.isCoolingOk;
   const pkvWarning = !calc.pkv.isOptimal;
 
   const tabGroups: TabGroup[] = [
     {
-      groupTitle: '1. Паспорт',
+      groupTitle: '1. Скважина и пласт',
       tabs: [
         {
           id: 'well-scheme',
           label: 'Схема скважины',
-          shortLabel: 'Схема скважины',
+          shortLabel: 'Схема скважины (ТМСП / паспорт)',
           icon: Layers,
           color: 'text-sky-600 dark:text-sky-400',
           hasWarning: wellSchemeWarning,
         },
-        {
-          id: 'volumes',
-          label: 'Объёмы',
-          shortLabel: 'Объёмы скважины',
-          icon: Database,
-          color: 'text-emerald-600 dark:text-emerald-400',
-        },
-      ],
-    },
-    {
-      groupTitle: '2. Подбор и гидравлика',
-      tabs: [
         {
           id: 'hydraulics',
           label: 'Приток и газ',
@@ -352,43 +335,47 @@ export default function App() {
           color: 'text-blue-600 dark:text-blue-400',
           hasWarning: hydraulicsWarning,
         },
+      ],
+    },
+    {
+      groupTitle: '2. Установка и НКТ',
+      tabs: [
         {
           id: 'head-margin',
-          label: 'Запас напора',
-          shortLabel: 'Запас напора (ТМС / F)',
+          label: 'Напор и ПЭД',
+          shortLabel: 'Запас напора и охлаждение ПЭД',
           icon: TrendingUp,
           color: 'text-sky-600 dark:text-sky-400',
-          hasWarning: headMarginWarning,
+          hasWarning: headAndPedWarning,
         },
         {
           id: 'nkt',
-          label: 'Трубы НКТ',
-          shortLabel: 'Колонна НКТ',
+          label: 'НКТ и глушение',
+          shortLabel: 'Колонна НКТ и глушение (ПРС/КРС)',
           icon: Pipette,
           color: 'text-purple-600 dark:text-purple-400',
           hasWarning: nktWarning,
         },
         {
-          id: 'electro',
-          label: 'СУ и ТМПН',
-          shortLabel: 'Электрокомплекс (СУ и ТМПН)',
-          icon: Zap,
-          color: 'text-amber-600 dark:text-yellow-400',
-          hasWarning: electroWarning,
-        },
-        {
-          id: 'cooling-kill',
-          label: 'ПЭД и глушение',
-          shortLabel: 'Охлаждение ПЭД и глушение',
-          icon: Snowflake,
-          color: 'text-cyan-600 dark:text-cyan-400',
-          hasWarning: coolingWarning,
+          id: 'volumes',
+          label: 'Объёмы',
+          shortLabel: 'Ступенчатые объёмы скважины',
+          icon: Database,
+          color: 'text-emerald-600 dark:text-emerald-400',
         },
       ],
     },
     {
-      groupTitle: '3. Режимы и графики',
+      groupTitle: '3. Режимы и наземное',
       tabs: [
+        {
+          id: 'electro',
+          label: 'СУ и ТМПН',
+          shortLabel: 'Электрокомплекс (кабель, СУ, ТМПН)',
+          icon: Zap,
+          color: 'text-amber-600 dark:text-yellow-400',
+          hasWarning: electroWarning,
+        },
         {
           id: 'pkv',
           label: 'Режим ПКВ',
@@ -560,6 +547,7 @@ export default function App() {
               <NktTab
                 state={wellState}
                 nkt={calc.nkt}
+                coolingKill={calc.coolingKill}
                 onChange={handleUpdateState}
               />
             )}
@@ -584,14 +572,6 @@ export default function App() {
               <ElectroTab
                 state={wellState}
                 electro={calc.electro}
-                onChange={handleUpdateState}
-              />
-            )}
-
-            {activeTab === 'cooling-kill' && (
-              <CoolingKillTab
-                state={wellState}
-                coolingKill={calc.coolingKill}
                 onChange={handleUpdateState}
               />
             )}

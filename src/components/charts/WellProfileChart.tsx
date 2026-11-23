@@ -10,12 +10,12 @@ interface WellProfileChartProps {
 
 const ZONE_META: Record<string, { label: string; tab?: ActiveTab }> = {
   wellhead: { label: 'Устьевая арматура и штуцер → открыть расчёт штуцера', tab: 'choke' },
-  nkt: { label: 'Колонна НКТ → открыть гидравлику и прочность НКТ', tab: 'nkt' },
+  nkt: { label: 'Колонна НКТ → открыть расчёт НКТ и глушения скважины', tab: 'nkt' },
   cable: { label: 'Силовой кабель → открыть расчёт СУ, ТМПН и потерь ΔU', tab: 'electro' },
   levels: { label: 'Динамический и статический уровни → открыть режим ПКВ', tab: 'pkv' },
-  esp: { label: 'ЭЦН и входной модуль → открыть расчёт притока и газа βвх', tab: 'hydraulics' },
-  ped: { label: 'Электродвигатель ПЭД → открыть расчёт охлаждения и глушения', tab: 'cooling-kill' },
-  plast: { label: 'Продуктивный пласт (ВРП) → открыть расчёт притока и Кпр', tab: 'hydraulics' },
+  esp: { label: 'ЭЦН → открыть расчёт запаса напора и охлаждения ПЭД', tab: 'head-margin' },
+  ped: { label: 'Электродвигатель ПЭД → открыть охлаждение ПЭД и запас напора', tab: 'head-margin' },
+  plast: { label: 'Продуктивный пласт (ВРП) → открыть расчёт притока и газа βвх', tab: 'hydraulics' },
 };
 
 export const WellProfileChart: React.FC<WellProfileChartProps> = ({

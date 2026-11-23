@@ -12,6 +12,7 @@ import {
   Sliders,
   Compass,
   Activity,
+  Snowflake,
 } from 'lucide-react';
 
 interface HeadMarginTabProps {
@@ -21,7 +22,7 @@ interface HeadMarginTabProps {
 }
 
 export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onChange }) => {
-  const { headMargin, hydraulics } = calc;
+  const { headMargin, hydraulics, coolingKill } = calc;
 
   const syncFromPassport = () => {
     const tmsPressure = state.levelInputMode === 'tmsp' ? state.tmspPDyn : state.measuredPtube;
@@ -35,9 +36,13 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
     });
   };
 
+  const setFrequency = (freq: number) => {
+    onChange({ headFreq: freq, frequency: freq });
+  };
+
   const applyRecommendedFreq = () => {
     const target = Number(Math.min(200, Math.max(30, headMargin.recFreqMarginHz)).toFixed(1));
-    onChange({ headFreq: target });
+    setFrequency(target);
   };
 
   const hasElongationError = state.headElongation > state.headPumpDepth;
@@ -52,20 +57,20 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors">
         <div>
           <div className="text-[11px] font-bold uppercase tracking-wider text-sky-600 dark:text-sky-400 mb-1">
-            Модуль 08 · Экспресс-контроль напора УЭЦН
+            Погружной агрегат УЭЦН · Насос и ПЭД
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Расчёт запаса напора по ТМС и частоте ЧРП
+            Запас напора УЭЦН и охлаждение ПЭД
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Проверка развиваемого напора установки на текущей частоте с учётом удлинения ствола, Pбуф, Pзатр и Pтмс / Hд по вертикали
+            Единый контроль рабочего режима установки на частоте ЧРП: достаточность напора по ТМС/Hд и скорость омывания двигателя
           </p>
         </div>
 
         <button
           type="button"
           onClick={syncFromPassport}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition whitespace-nowrap shrink-0 cursor-pointer"
         >
           <Link2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
           Взять из схемы
@@ -81,8 +86,9 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
         </div>
       )}
 
+      {/* PART 1: HEAD MARGIN */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Inputs */}
+        {/* Left Column: Head Margin Inputs */}
         <div className="lg:col-span-6 space-y-5">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-5 transition-colors">
             {/* Mode & Method Switches */}
@@ -204,7 +210,7 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
                   </label>
                   <NumericInput
                     value={state.headFreq}
-                    onChange={(val) => onChange({ headFreq: val })}
+                    onChange={(val) => setFrequency(val)}
                     className="mt-1 w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white font-mono focus:border-blue-500 outline-none"
                   />
                   <input
@@ -213,7 +219,7 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
                     max={state.headFreq > 75 ? 120 : 75}
                     step={0.5}
                     value={Math.min(state.headFreq > 75 ? 120 : 75, Math.max(30, state.headFreq))}
-                    onChange={(e) => onChange({ headFreq: parseFloat(e.target.value) })}
+                    onChange={(e) => setFrequency(parseFloat(e.target.value))}
                     className="w-full mt-2 accent-blue-600 cursor-pointer"
                   />
                 </div>
@@ -280,9 +286,71 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
               </div>
             </div>
           </div>
+
+          {/* Sensitivity Table by Frequency */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 transition-colors">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              Прогноз запаса напора при изменении частоты ЧРП
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase text-slate-500 dark:text-slate-400">
+                    <th className="py-2 pr-2">Частота F</th>
+                    <th className="py-2 px-2">Напор H(F)</th>
+                    <th className="py-2 px-2">Запас напора</th>
+                    <th className="py-2 pl-2 text-right">Действие</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70 font-mono">
+                  {headMargin.freqTable.map((row) => {
+                    const isCurrent = Math.abs(row.freq - state.headFreq) < 0.05;
+                    return (
+                      <tr
+                        key={row.freq}
+                        className={isCurrent ? 'bg-blue-50/70 dark:bg-blue-950/30' : ''}
+                      >
+                        <td className="py-2 pr-2 font-bold text-slate-900 dark:text-white">
+                          {row.freq} Гц{' '}
+                          {isCurrent && (
+                            <span className="font-sans text-[10px] text-blue-600 dark:text-blue-400 ml-1">
+                              (текущая)
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 text-slate-700 dark:text-slate-300">{row.headM} м</td>
+                        <td
+                          className={`py-2 px-2 font-bold ${
+                            row.marginM < 0
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : row.marginM < 150
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-emerald-600 dark:text-emerald-400'
+                          }`}
+                        >
+                          {row.marginM > 0 ? `+${row.marginM}` : row.marginM} м
+                        </td>
+                        <td className="py-2 pl-2 text-right">
+                          {!isCurrent && (
+                            <button
+                              type="button"
+                              onClick={() => setFrequency(row.freq)}
+                              className="font-sans text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                            >
+                              Применить
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
-        {/* Right Column: Results & Diagnostics */}
+        {/* Right Column: Head Margin Results + PED Cooling */}
         <div className="lg:col-span-6 space-y-5">
           {/* Hero Reserve Card */}
           <div
@@ -353,7 +421,7 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
             )}
           </div>
 
-          {/* 4 Key Calculated Rows (exact match to Excel output) */}
+          {/* 4 Key Calculated Metrics */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
               <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase">
@@ -450,60 +518,119 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
             </div>
           </div>
 
-          {/* Sensitivity Table by Frequency */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 transition-colors">
-            <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Прогноз запаса напора при изменении частоты ЧРП
+          {/* PART 2: PED COOLING MODULE (Directly coupled with frequency & flow rate) */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 transition-colors">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 gap-2">
+              <div className="flex items-center gap-2">
+                <Snowflake className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                  Охлаждение ПЭД (при Q = {hydraulics.scaledQ.toFixed(1)} м³/сут)
+                </h3>
+              </div>
+              <span
+                className={`text-xs font-semibold shrink-0 ${
+                  coolingKill.isCoolingOk
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-rose-600 dark:text-rose-400'
+                }`}
+              >
+                {coolingKill.isCoolingOk ? 'Норма охлаждения' : 'Риск перегрева ПЭД!'}
+              </span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase text-slate-500 dark:text-slate-400">
-                    <th className="py-2 pr-2">Частота F</th>
-                    <th className="py-2 px-2">Напор H(F)</th>
-                    <th className="py-2 px-2">Запас напора</th>
-                    <th className="py-2 pl-2 text-right">Действие</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/70 font-mono">
-                  {headMargin.freqTable.map((row) => {
-                    const isCurrent = Math.abs(row.freq - state.headFreq) < 0.05;
-                    return (
-                      <tr
-                        key={row.freq}
-                        className={isCurrent ? 'bg-blue-50/70 dark:bg-blue-950/30' : ''}
-                      >
-                        <td className="py-2 pr-2 font-bold text-slate-900 dark:text-white">
-                          {row.freq} Гц {isCurrent && <span className="font-sans text-[10px] text-blue-600 dark:text-blue-400 ml-1">(текущая)</span>}
-                        </td>
-                        <td className="py-2 px-2 text-slate-700 dark:text-slate-300">{row.headM} м</td>
-                        <td
-                          className={`py-2 px-2 font-bold ${
-                            row.marginM < 0
-                              ? 'text-rose-600 dark:text-rose-400'
-                              : row.marginM < 150
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-emerald-600 dark:text-emerald-400'
-                          }`}
-                        >
-                          {row.marginM > 0 ? `+${row.marginM}` : row.marginM} м
-                        </td>
-                        <td className="py-2 pl-2 text-right">
-                          {!isCurrent && (
-                            <button
-                              type="button"
-                              onClick={() => onChange({ headFreq: row.freq })}
-                              className="font-sans text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                            >
-                              Применить
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Внутр. D ЭК <span className="text-blue-600 dark:text-blue-400 font-mono">мм</span>
+                  <FieldHint hintKey="casingId" />
+                </label>
+                <NumericInput
+                  value={state.casingId}
+                  onChange={(val) => onChange({ casingId: val, pkvCasingId: val })}
+                  className="focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Габарит ПЭД
+                </label>
+                <select
+                  value={state.pedDiameter}
+                  onChange={(e) => onChange({ pedDiameter: Number(e.target.value) })}
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-white font-mono focus:border-cyan-500 focus:outline-none"
+                >
+                  <option value="103">103 мм (Габ. 5)</option>
+                  <option value="117">117 мм (Габ. 5А)</option>
+                  <option value="130">130 мм (Габ. 6)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Кожух охлаждения
+                </label>
+                <select
+                  value={state.coolingShroud ? 'yes' : 'no'}
+                  onChange={(e) => onChange({ coolingShroud: e.target.value === 'yes' })}
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2.5 py-2 text-xs text-slate-900 dark:text-white font-mono focus:border-cyan-500 focus:outline-none"
+                >
+                  <option value="no">Без кожуха</option>
+                  <option value="yes">С кожухом (122 мм)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80 text-xs">
+              <div className="py-2 flex justify-between items-center">
+                <span className="text-slate-500 dark:text-slate-400">Площадь кольцевого зазора:</span>
+                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                  {coolingKill.sAnnulusCm2.toFixed(1)} см²
+                </span>
+              </div>
+
+              <div className="py-2 flex justify-between items-center bg-slate-50 dark:bg-slate-950/40 px-2.5 rounded-lg">
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
+                  Скорость омывания корпуса ПЭД v:
+                </span>
+                <span
+                  className={`font-mono font-bold text-sm ${
+                    coolingKill.isCoolingOk ? 'text-cyan-600 dark:text-cyan-400' : 'text-rose-600 dark:text-rose-400'
+                  }`}
+                >
+                  {coolingKill.velocity.toFixed(2)} м/с{' '}
+                  <span className="text-[11px] font-normal text-slate-500">
+                    (норма ≥ {coolingKill.minRequiredVelocity.toFixed(2)})
+                  </span>
+                </span>
+              </div>
+
+              <div className="py-2 flex justify-between items-center">
+                <span className="text-slate-500 dark:text-slate-400">Тепловыделение / мин. дебит охлаждения:</span>
+                <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                  {coolingKill.heatLossKw.toFixed(1)} кВт · Qmin ≥ {coolingKill.qMinCoolingSafeM3Day.toFixed(1)} м³/сут
+                </span>
+              </div>
+            </div>
+
+            <div
+              className={`p-3.5 rounded-xl border text-xs leading-relaxed space-y-2.5 ${
+                coolingKill.isCoolingOk
+                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200'
+                  : 'bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800/40 text-rose-900 dark:text-rose-200'
+              }`}
+            >
+              <p>{coolingKill.coolingMessage}</p>
+              {!coolingKill.isCoolingOk && !state.coolingShroud && (
+                <button
+                  type="button"
+                  onClick={() => onChange({ coolingShroud: true })}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-rose-600 hover:bg-rose-500 transition shadow-xs cursor-pointer"
+                >
+                  <Wrench className="w-3.5 h-3.5" />
+                  Включить кожух охлаждения
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -513,7 +640,7 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
       <details className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-xs text-slate-600 dark:text-slate-300 leading-relaxed transition-colors">
         <summary className="font-semibold text-blue-600 dark:text-blue-400 cursor-pointer select-none flex items-center gap-1.5 hover:text-blue-500 dark:hover:text-blue-300">
           <HelpCircle className="w-4 h-4" />
-          Методика и формулы расчёта запаса напора
+          Методика расчёта запаса напора и охлаждения ПЭД
         </summary>
         <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
           <p className="font-mono text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800 space-y-1">
@@ -524,13 +651,11 @@ export const HeadMarginTab: React.FC<HeadMarginTabProps> = ({ state, calc, onCha
             <span className="block">
               Hнеобх = Hд.верт + (Pбуф − Pзатр) · {headMargin.coeffMPerAtm.toFixed(headMargin.coeffMPerAtm === 10 ? 0 : 2)}
             </span>
-            <span className="block">H(F) = H(50 Гц) · (F / 50)²</span>
-            <span className="block font-bold text-blue-700 dark:text-blue-400">
-              Запас напора = H(F) − Hнеобх
-            </span>
+            <span className="block">H(F) = H(50 Гц) · (F / 50)² &nbsp;→&nbsp; Запас напора = H(F) − Hнеобх</span>
+            <span className="block">v_омыв = Q(F) / [ 86400 · (π/4) · (Dэк² − Dпэд²) ]</span>
           </p>
           <p>
-            По умолчанию используется промысловый коэффициент <strong>1 атм = 10 м</strong>. При необходимости можно переключить расчёт на фактическую плотность водонефтяной смеси ρсм из паспорта скважины.
+            Регулирование частоты ЧРП влияет одновременно на развиваемый напор (квадратично) и на подачу/скорость охлаждения ПЭД (линейно). Поэтому контроль запаса напора и теплового режима ПЭД объединены в одном модуле.
           </p>
         </div>
       </details>
